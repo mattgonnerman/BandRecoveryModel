@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><metadata>
+    <idinfo>
+        <citation>
+            <citeinfo>
+                <origin/>
+                <pubdate>20181113</pubdate>
+                <title>Wildlife Management Districts</title>
+                <onlink>https://gis.maine.gov/arcgis/rest/services/ifw/Wildlife_Mgmt_Districts/MapServer</onlink>
+            </citeinfo>
+        </citation>
+        <descript>
+            <abstract>Wildlife Management Districts are delineated, geographical sections of the State that have similarities in biological and geophysical characteristics. Factors such as geographical location (western mountains vs. downeast coastal plain), soils, predominant forest types (northern hardwoods vs. spruce-fir), seasonal temperature variations, precipitation including annual snowfall, land use (northern forest vs. agricultural), and human population and development, etc., are variables that ultimately influence habitat and the abundance and diversity of wildlife. For each WMD, we made a concerted effort to select clearly recognizable physical boundaries to reduce confusion for hunters. Identification of Wildlife Management Districts benefits MDIFW and hunters in several ways. It helps biologists collect and evaluate data and fine-tune management recommendations. Hunters need refer to only one common set of boundaries for all species they pursue. We use all WMDs individually for managing deer. For other game, WMDs are combined, as needed, to form meaningful hunting zones.In 2000, the Maine Department of Inland Fisheries and Wildlife (MDIFW) undertook an effort to reduce the confusion of having different hunting zones for deer, moose, turkey, and waterfowl by designing a zoning system that met the management requirements for all species, while unifying boundary lines. As a result of that effort, Maine was divided into 30 parcels, and the term Wildlife Management Districts (WMDs) was born. Some of the boundaries of the Wildlife Management Districts were changed in 2006. There are now only 29 districts.In 2014, MDIFW again updated the WMD boundary written descriptions to reflect changes in road names and to correct other errors.  The dataset was  re-digitized using aerial imagery to reflect the description updates and to more accurately reflect the boundaries.
+
+
+
+
+</abstract>
+            <purpose>Wildlife Management Disctricts are delineated, geographical sections of the State that have similarities in biological and geophysical characteristics</purpose>
+        </descript>
+        <timeperd>
+            <timeinfo>
+                <rngdates>
+                    <begdate>20181113</begdate>
+                    <enddate>20181113</enddate>
+                </rngdates>
+            </timeinfo>
+            <current>State of Maine</current>
+        </timeperd>
+        <status>
+            <progress>Complete</progress>
+            <update>As needed</update>
+        </status>
+        <spdom>
+            <bounding>
+                <westbc>-71.16694772785496</westbc>
+                <eastbc>-66.76162606007651</eastbc>
+                <northbc>47.46011458965601</northbc>
+                <southbc>42.94317580149655</southbc>
+            </bounding>
+        </spdom>
+        <keywords>
+            <theme>
+                <themekt>None</themekt>
+                <themekey>Maine</themekey>
+                <themekey>MaineIFW</themekey>
+                <themekey>MDIFW</themekey>
+                <themekey>Maine Department of Inland Fisheries and Wildlife</themekey>
+                <themekey>Wildlife Management</themekey>
+                <themekey>Hunting</themekey>
+                <themekey>geolibrary</themekey>
+                <themekey>WMD</themekey>
+                <themekey>boundaries</themekey>
+            </theme>
+        </keywords>
+        <accconst>None</accconst>
+        <useconst>These data are provided by the Maine Department of Inland Fisheries and Wildlife solely for individual use or the use of a company for the purpose stated in your request for the data.  These data may not be distributed or sold to other users without the written permission of the Commissioner of the Department of Inland Fisheries and Wildlife.  Boundary lines should not be used for legal purposes.             </useconst>
+        <datacred>Maine Department of Inland Fisheries and Wildlife</datacred>
+    </idinfo>
+    <metainfo>
+        <metd>20181113</metd>
+        <metc>
+            <cntinfo>
+                <cntorgp>
+                    <cntorg>Maine Department of Inland Fisheries and Wildlife</cntorg>
+                    <cntper>Jason Czapiga</cntper>
+                </cntorgp>
+                <cntpos>GIS Coordinator</cntpos>
+                <cntaddr>
+                    <addrtype>mailing and physical</addrtype>
+                    <address>650 State Street</address>
+                    <city>Bangor</city>
+                    <state>Maine</state>
+                    <postal>04401</postal>
+                    <country>US</country>
+                </cntaddr>
+                <cntvoice>207-561-5620</cntvoice>
+                <cntfax>207-941-4450</cntfax>
+                <cntemail>jason.czapiga@maine.gov</cntemail>
+            </cntinfo>
+        </metc>
+        <metstdn>FGDC Content Standard for Digital Geospatial Metadata</metstdn>
+        <metstdv>FGDC-STD-001-1998</metstdv>
+        <mettc>local time</mettc>
+    </metainfo>
+</metadata>
