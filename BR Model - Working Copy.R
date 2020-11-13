@@ -904,11 +904,23 @@ br_w_as_model <- function(){
       sigma2.thJ <- pow(sigma.thJ, 2)
       tau.thJ <- pow(sigma.thJ,-2)
       
-      
       totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]/WMD.HR.A.2019[WMD.id[i]]
       totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]/WMD.HR.J.2019[WMD.id[i]]
-      
     }
+    
+    N.A[WMD.id[i],1] ~ dnorm(100, 10)
+    N.J[WMD.id[i],1] ~ dnorm(100, 10)
+    for(t in 2:n.years){
+      N.A[WMD.id[i],t+1] ~ dbin(S.A[WMD.id[i]], N.A[WMD.id[i],t]) + dbin(S.J[WMD.id[i]], N.J[WMD.id[i],t])
+      N.J[WMD.id[i],t+1] ~ dpois(mean1[WMD.id[i],t])
+      
+      mean1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t]
+      R[WMD.id[i],t] ~ unif(0,1)
+      
+      S.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W * (1-WMD.HR.A.2019[WMD.id[i]])
+      S.A[WMD.id[i]] <- S_M_J_W2S * S_M_J_S2W * (1-WMD.HR.J.2019[WMD.id[i]])
+    }
+      
   }
 }
 
