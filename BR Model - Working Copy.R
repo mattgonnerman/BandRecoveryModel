@@ -684,8 +684,9 @@ dat <- list( succ = succ, #Adult Survival
              br_2020 = br_2020, #Band Recovery
              br_s2w = br_s2w, #Band Recovery
              br_wmd = br_wmd,
-             totharv.A = totharv.A, #Total Adult Harvest by WMD '14-'19
-             totharv.J = totharv.J, #Total Juvenile Harvest by WMD '14-'19 
+             th.A = totharv.A, #Total Adult Harvest by WMD '14-'19
+             th.J = totharv.J, #Total Juvenile Harvest by WMD '14-'19 
+             n.years = ncol(totharv.A),
              TH_J2019 = TH_J2019,
              TH_A2019 = TH_A2019,
              sampledwmd = sampledwmd, #list of wmd's where we sampled
@@ -892,7 +893,23 @@ br_w_as_model <- function(){
   
   
   #State-Space Abundance
-  
+  for(i in 1:N.wmd){
+    for(t in 1:n.years){
+      th.A[WMD.id[i],t] ~ dnorm(totharv.A[WMD.id[i],t], tau.thA)
+      th.J[WMD.id[i],t] ~ dnorm(totharv.J[WMD.id[i],t], tau.thJ)
+      sigma.thA ~dunif(0,100)
+      sigma2.thA <- pow(sigma.thA, 2)
+      tau.thA <- pow(sigma.thA,-2)
+      sigma.thJ ~dunif(0,100)
+      sigma2.thJ <- pow(sigma.thJ, 2)
+      tau.thJ <- pow(sigma.thJ,-2)
+      
+      
+      totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]/WMD.HR.A.2019[WMD.id[i]]
+      totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]/WMD.HR.J.2019[WMD.id[i]]
+      
+    }
+  }
 }
 
 ### Run Model ###
