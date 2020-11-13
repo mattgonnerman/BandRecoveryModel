@@ -930,7 +930,7 @@ BR_w_SPP_output <- jags(data = dat,
 
 BR_w_SPP_output
 
-write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "BR_w_SPP_Alt_output.csv")
+write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "BR_P_SPP_SSPop_output.csv")
 
 # autocorr.plot(wmdspecific_wmdsurv_output,ask=F,auto.layout = T)
 # 
