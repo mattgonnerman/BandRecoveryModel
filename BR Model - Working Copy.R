@@ -8,7 +8,7 @@ require(sf)
 require(rgdal)
 
 #Set Working Directory
-choose.dir()
+setwd(choose.dir())
 
 
 trap.raw <- read.csv("Trapping - Data.csv")
@@ -558,6 +558,11 @@ allyearsharvest[is.na(allyearsharvest)] <- 0
 allyearharv.A <- as.matrix(allyearsharvest[,1:((ncol(allyearsharvest)-1)/2)])
 allyearharv.J <- as.matrix(allyearsharvest[,((ncol(allyearsharvest)+1)/2):(ncol(allyearsharvest)-1)])
 
+#Only want from 2014-2019
+totharv.A <- allyearharv.A[,(ncol(allyearharv.A)-5):ncol(allyearharv.A)]
+totharv.J <- allyearharv.J[,(ncol(allyearharv.J)-5):ncol(allyearharv.J)]
+  
+
 ### Need number of weeks from capture to first hunting season for each banded bird
 capdate.df <- trap.raw %>% filter(Recapture != "Y") %>%
   dplyr::select(BirdID = AlumBand, CapDate = Date) %>%
@@ -679,8 +684,8 @@ dat <- list( succ = succ, #Adult Survival
              br_2020 = br_2020, #Band Recovery
              br_s2w = br_s2w, #Band Recovery
              br_wmd = br_wmd,
-             # TH_J2018 = TH_J2018,
-             # TH_A2018 = TH_A2018, 
+             totharv.A = totharv.A, #Total Adult Harvest by WMD '14-'19
+             totharv.J = totharv.J, #Total Juvenile Harvest by WMD '14-'19 
              TH_J2019 = TH_J2019,
              TH_A2019 = TH_A2019,
              sampledwmd = sampledwmd, #list of wmd's where we sampled
@@ -867,17 +872,9 @@ br_w_as_model <- function(){
     WMD.HR.A.2019[WMD.id[i]] <- mean(HR.A.2019.knot[WMD.matrix[i, 1:WMD.vec[i]]])
     WMD.HR.J.2020[WMD.id[i]] <- mean(HR.J.2020.knot[WMD.matrix[i, 1:WMD.vec[i]]])
     WMD.HR.A.2020[WMD.id[i]] <- mean(HR.A.2020.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-    
-    PopEst_J2019[WMD.id[i]] <- TH_J2019[WMD.id[i]]/WMD.HR.J.2019[WMD.id[i]]
-    PopEst_A2019[WMD.id[i]] <- TH_A2019[WMD.id[i]]/WMD.HR.A.2019[WMD.id[i]]
   }
-  
-  logit(State.HR.A.2019) <- intercept_hr + beta_A_hr + beta_2019_hr
-  logit(State.HR.J.2019) <- intercept_hr + beta_2019_hr
-  logit(State.HR.A.2020) <- intercept_hr + beta_A_hr + beta_2020_hr
-  logit(State.HR.J.2020) <- intercept_hr + beta_2020_hr
-  
-  
+
+  #Period Specific Survival
   for(i in sampledwmd){
     logit(s.A[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
     logit(s.J[i]) <- intercept_s + beta_wmd_s[i]
@@ -887,11 +884,15 @@ br_w_as_model <- function(){
     logit(WSR_M_J_W2S[i]) <- intercept_s + beta_wmd_s[i]
     logit(WSR_M_A_W2S[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
     
-    S_M_J_W2S[i] <- pow(WSR_M_J_S2W[i], 11)
-    S_M_A_W2S[i] <- pow(WSR_M_A_S2W[i], 11)
-    S_M_J_S2W[i] <- pow(WSR_M_J_S2W[i], 36)
-    S_M_A_S2W[i] <- pow(WSR_M_A_S2W[i], 36)
+    S_M_J_W2S <- pow(mean(WSR_M_J_W2S), 11)
+    S_M_A_W2S <- pow(mean(WSR_M_A_W2S), 11)
+    S_M_J_S2W <- pow(mean(WSR_M_J_S2W), 36)
+    S_M_A_S2W <- pow(mean(WSR_M_A_S2W), 36)
   }
+  
+  
+  #State-Space Abundance
+  
 }
 
 ### Run Model ###
@@ -908,14 +909,9 @@ BR_w_SPP_output <- jags(data = dat,
 BR_w_SPP_output
 
 write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "BR_w_SPP_Alt_output.csv")
-# 
+
 # autocorr.plot(wmdspecific_wmdsurv_output,ask=F,auto.layout = T)
 # 
 # plot(as.mcmc(BR_w_SPP_output))
 # 
 # traceplot(BR_w_SPP_output)
-
-
-### Graphs and Plots
-
-
