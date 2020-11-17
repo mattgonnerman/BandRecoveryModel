@@ -686,6 +686,8 @@ dat <- list( succ = succ, #Adult Survival
              br_wmd = br_wmd,
              th.A = totharv.A, #Total Adult Harvest by WMD '14-'19
              th.J = totharv.J, #Total Juvenile Harvest by WMD '14-'19 
+             th.year1.A = as.integer(totharv.A[,1]), #Total Adult Harvest by WMD '14-'19
+             th.year1.J = as.integer(totharv.J[,1]), #Total Juvenile Harvest by WMD '14-'19
              n.years = ncol(totharv.A),
              sampledwmd = sampledwmd, #list of wmd's where we sampled
              cap.site = ind.cap.site, #each individuals capture site as a numeric
@@ -869,50 +871,50 @@ br_w_as_model <- function(){
 
   ### Period Specific Survival
   for(i in sampledwmd){
-    logit(s.A[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
-    logit(s.J[i]) <- intercept_s + beta_wmd_s[i]
-    
     logit(WSR_M_J_S2W[i]) <- intercept_s + beta_S2W_s + beta_wmd_s[i]
     logit(WSR_M_A_S2W[i]) <- intercept_s + beta_A_s + beta_S2W_s + beta_wmd_s[i]
     logit(WSR_M_J_W2S[i]) <- intercept_s + beta_wmd_s[i]
     logit(WSR_M_A_W2S[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
   }
   
-  S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S), 11), .05)
-  S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S), 11), .05)
-  S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W), 36), .05)
-  S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W), 36), .05)
+  # S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W), 36), .05)
+  # S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W), 36), .05)
+  # S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S), 11), .05)
+  # S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S), 11), .05)
+  S_M_J_S2W ~ dnorm(pow(.97, 36), .05)
+  S_M_A_S2W ~ dnorm(pow(.97, 36), .05)
+  S_M_J_W2S ~ dnorm(pow(.97, 11), .05)
+  S_M_A_W2S ~ dnorm(pow(.97, 11), .05)
   
   ### State-Space Abundance
-  #Observation Process Error Priors
-  sigma.thA ~dunif(0,100)
-  sigma2.thA <- pow(sigma.thA, 2)
-  tau.thA <- pow(sigma.thA,-2)
-  sigma.thJ ~dunif(0,100)
-  sigma2.thJ <- pow(sigma.thJ, 2)
-  tau.thJ <- pow(sigma.thJ,-2)
-  
   for(i in 1:N.wmd){
-    N.A[WMD.id[i],1] ~ dnorm(100, 10)
-    N.J[WMD.id[i],1] ~ dnorm(100, 10)
-    
+
     for(t in 1:n.years){
-      th.A[WMD.id[i],t] ~ dnorm(totharv.A[WMD.id[i],t], tau.thA)
-      th.J[WMD.id[i],t] ~ dnorm(totharv.J[WMD.id[i],t], tau.thJ)
+      th.A[WMD.id[i],t] ~ dpois(totharv.A[WMD.id[i],t])
+      th.J[WMD.id[i],t] ~ dpois(totharv.J[WMD.id[i],t])
       
-      totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]/WMD.HR.A.2019[WMD.id[i]]
-      totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]/WMD.HR.J.2019[WMD.id[i]]
-    
-      N.A[WMD.id[i],t+1] <- n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t]
-      n.surv.A[WMD.id[i],t] ~ dbin(S.A[WMD.id[i]], N.A[WMD.id[i],t])
-      n.surv.J[WMD.id[i],t] ~ dbin(S.J[WMD.id[i]], N.J[WMD.id[i],t])
-      S.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W * (1 - WMD.HR.A.2019[WMD.id[i]])
-      S.J[WMD.id[i]] <- S_M_J_W2S * S_M_J_S2W * (1 - WMD.HR.J.2019[WMD.id[i]])
-   
-      N.J[WMD.id[i],t+1] ~ dpois(mean1[WMD.id[i],t])
-      mean1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])
-      R[WMD.id[i],t] ~ dunif(0,1)
+      totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]*WMD.HR.A.2019[WMD.id[i]]
+      totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]*WMD.HR.J.2019[WMD.id[i]]
     }
+  
+    # N.A[WMD.id[i],1] <- dround((1+th.year1.A[WMD.id[i]])/.27,0)
+    # N.J[WMD.id[i],1] <- dround((1+th.year1.J[WMD.id[i]])/.17,0)
+    N.A[WMD.id[i],1] <- dround(1.6, 0)
+    N.J[WMD.id[i],1] <- dround(1.6, 0)
+    
+    
+    for(t in 2:n.years){
+      N.A[WMD.id[i],t] <- n.surv.A[WMD.id[i],t-1] + n.surv.J[WMD.id[i],t-1]
+      n.surv.A[WMD.id[i],t-1] ~ dbin(AnnualS.A[WMD.id[i]], N.A[WMD.id[i],t-1])
+      n.surv.J[WMD.id[i],t-1] ~ dbin(AnnualS.J[WMD.id[i]], N.J[WMD.id[i],t-1])
+   
+      N.J[WMD.id[i],t] ~ dpois(mean1[WMD.id[i],t-1])
+      mean1[WMD.id[i],t-1] <- R[WMD.id[i],t-1] * (N.A[WMD.id[i],t-1] + N.J[WMD.id[i],t-1])
+      R[WMD.id[i],t-1] ~ dunif(0,1)
+    }
+    
+    AnnualS.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W * (1 - WMD.HR.A.2019[WMD.id[i]])
+    AnnualS.J[WMD.id[i]] <- S_M_J_W2S * S_M_J_S2W * (1 - WMD.HR.J.2019[WMD.id[i]])
   }
 }
 
