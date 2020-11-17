@@ -859,7 +859,7 @@ br_w_as_model <- function(){
     logit(HR.J.2020.knot[i]) <- intercept_hr + beta_2020_hr + w.tilde.star[i]
   }
 
-  #WMD Specific Harvest Rates
+  ### WMD Specific Harvest Rates
   for(i in 1:N.wmd){
     WMD.HR.J.2019[WMD.id[i]] <- mean(HR.J.2019.knot[WMD.matrix[i, 1:WMD.vec[i]]])
     WMD.HR.A.2019[WMD.id[i]] <- mean(HR.A.2019.knot[WMD.matrix[i, 1:WMD.vec[i]]])
@@ -867,7 +867,7 @@ br_w_as_model <- function(){
     WMD.HR.A.2020[WMD.id[i]] <- mean(HR.A.2020.knot[WMD.matrix[i, 1:WMD.vec[i]]])
   }
 
-  #Period Specific Survival
+  ### Period Specific Survival
   for(i in sampledwmd){
     logit(s.A[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
     logit(s.J[i]) <- intercept_s + beta_wmd_s[i]
@@ -877,12 +877,14 @@ br_w_as_model <- function(){
     logit(WSR_M_J_W2S[i]) <- intercept_s + beta_wmd_s[i]
     logit(WSR_M_A_W2S[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
   }
-  S_M_J_W2S <- pow(mean(WSR_M_J_W2S), 11)
-  S_M_A_W2S <- pow(mean(WSR_M_A_W2S), 11)
-  S_M_J_S2W <- pow(mean(WSR_M_J_S2W), 36)
-  S_M_A_S2W <- pow(mean(WSR_M_A_S2W), 36)
   
-  #State-Space Abundance
+  S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S), 11), .05)
+  S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S), 11), .05)
+  S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W), 36), .05)
+  S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W), 36), .05)
+  
+  ### State-Space Abundance
+  #Observation Process Error Priors
   sigma.thA ~dunif(0,100)
   sigma2.thA <- pow(sigma.thA, 2)
   tau.thA <- pow(sigma.thA,-2)
@@ -891,31 +893,29 @@ br_w_as_model <- function(){
   tau.thJ <- pow(sigma.thJ,-2)
   
   for(i in 1:N.wmd){
+    N.A[WMD.id[i],1] ~ dnorm(100, 10)
+    N.J[WMD.id[i],1] ~ dnorm(100, 10)
+    
     for(t in 1:n.years){
       th.A[WMD.id[i],t] ~ dnorm(totharv.A[WMD.id[i],t], tau.thA)
       th.J[WMD.id[i],t] ~ dnorm(totharv.J[WMD.id[i],t], tau.thJ)
       
       totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]/WMD.HR.A.2019[WMD.id[i]]
       totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]/WMD.HR.J.2019[WMD.id[i]]
-    }
     
-    N.A[WMD.id[i],1] ~ dnorm(100, 10)
-    N.J[WMD.id[i],1] ~ dnorm(100, 10)
-    for(t in 2:n.years){
       N.A[WMD.id[i],t+1] <- n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t]
       n.surv.A[WMD.id[i],t] ~ dbin(S.A[WMD.id[i]], N.A[WMD.id[i],t])
       n.surv.J[WMD.id[i],t] ~ dbin(S.J[WMD.id[i]], N.J[WMD.id[i],t])
+      S.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W * (1 - WMD.HR.A.2019[WMD.id[i]])
+      S.J[WMD.id[i]] <- S_M_J_W2S * S_M_J_S2W * (1 - WMD.HR.J.2019[WMD.id[i]])
+   
       N.J[WMD.id[i],t+1] ~ dpois(mean1[WMD.id[i],t])
-      
       mean1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])
       R[WMD.id[i],t] ~ dunif(0,1)
-      
-      S.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W * (1-WMD.HR.A.2019[WMD.id[i]])
-      S.J[WMD.id[i]] <- S_M_J_W2S * S_M_J_S2W * (1-WMD.HR.J.2019[WMD.id[i]])
     }
-      
   }
 }
+
 
 ### Run Model ###
 #Call JAGS
