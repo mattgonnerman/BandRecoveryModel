@@ -639,13 +639,15 @@ WhichWMD.df <- as.data.frame(spatialknots) %>%
   dplyr::select(Knot_ID, WMD_IN = IDENTIFIER) %>%
   group_by(WMD_IN) %>%
   mutate(row = row_number()) %>%
-  tidyr::pivot_wider(values_from = Knot_ID, names_from = row, names_prefix = 'Knot')
+  tidyr::pivot_wider(values_from = Knot_ID, names_from = row, names_prefix = 'Knot') %>%
+  filter(WMD_IN != 4)
 WMD.matrix <- as.matrix(WhichWMD.df[2:ncol(WhichWMD.df)])
 
 CountWMD.df <- as.data.frame(spatialknots) %>%
   dplyr::select(Knot_ID, WMD_IN = IDENTIFIER) %>%
   group_by(WMD_IN) %>%
   summarize(Total = n()) %>%
+  filter(WMD_IN != 4) %>%
   arrange(match(WMD_IN, WhichWMD.df$WMD_IN))
 WMD.vec <- CountWMD.df$Total
 WMD.id <- WhichWMD.df$WMD_IN
@@ -698,7 +700,7 @@ dat <- list( succ = succ, #Adult Survival
              N.wmd = nrow(WMD.matrix), #number of WMDs we are using in SPP
              WMD.matrix = WMD.matrix, #matrix showing which wmd a knot is in
              WMD.vec = WMD.vec, #vector for referencing WMD.matrix
-             WMD.id = WMD.id #vector to ID WMDs in SPP
+             WMD.id = sort(WMD.id) #vector to ID WMDs in SPP
 ) #for Harvest rate estimates
 
 #Parameters monitors
@@ -730,7 +732,9 @@ parameters.null <- c('alpha_s',
                      'S_M_J_W2S', #Juvenile Survival Capture to Start of Hunting Season
                      'S_M_A_W2S', #Juvenile Survival Capture to Start of Hunting Season
                      'S_M_J_S2W', #Juvenile Survival Capture to Start of Hunting Season
-                     'S_M_A_S2W' #Juvenile Survival Capture to Start of Hunting Season
+                     'S_M_A_S2W', #Juvenile Survival Capture to Start of Hunting Season
+                     'N.A',
+                     'N.J'
 )
 
 #Initial values
@@ -813,7 +817,7 @@ br_w_as_model <- function(){
     w[k,f[k]]<-1 #define true survival state at first capture
     z[k,f[k]]<-1 #define availability for natural risk at first capture
     
-    for(t in (f[k]+1):n.occasions){ #Starts first ocassion post capture
+    for(t in (f[k]+1):n.occasions){ #Starts first occasion post capture
       z[k,t] ~ dbern(mu1[k,t]) #State process (Does bird survive t-1 to t, natural risk)
       mu1[k,t] <- s[k,t-1]*w[k,t-1] #Probability that a bird survives t-1 to t
       
@@ -877,42 +881,50 @@ br_w_as_model <- function(){
     logit(WSR_M_A_W2S[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
   }
   
-  # S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W), 36), .05)
-  # S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W), 36), .05)
-  # S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S), 11), .05)
-  # S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S), 11), .05)
-  S_M_J_S2W ~ dnorm(pow(.97, 36), .05)
-  S_M_A_S2W ~ dnorm(pow(.97, 36), .05)
-  S_M_J_W2S ~ dnorm(pow(.97, 11), .05)
-  S_M_A_W2S ~ dnorm(pow(.97, 11), .05)
+  #There is a directed cycle 
+  S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W), 36), .05)
+  S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W), 36), .05)
+  S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S), 11), .05)
+  S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S), 11), .05)
+  # S_M_J_S2W ~ dnorm(pow(.97, 36), .05)
+  # S_M_A_S2W ~ dnorm(pow(.97, 36), .05)
+  # S_M_J_W2S ~ dnorm(pow(.97, 11), .05)
+  # S_M_A_W2S ~ dnorm(pow(.97, 11), .05)
   
   ### State-Space Abundance
+  tau.obs.A <- pow(sigma.obs.A, -2)
+  sigma2.obs.A <- pow(sigma.obs.A, 2)
+  sigma.obs.A ~ dunif(0,100)
+  tau.obs.J <- pow(sigma.obs.J, -2)
+  sigma2.obs.J <- pow(sigma.obs.J, 2)
+  sigma.obs.J ~ dunif(0,100)
   for(i in 1:N.wmd){
 
     for(t in 1:n.years){
-      th.A[WMD.id[i],t] ~ dpois(totharv.A[WMD.id[i],t])
-      th.J[WMD.id[i],t] ~ dpois(totharv.J[WMD.id[i],t])
+      th.A[WMD.id[i],t] ~ dnorm(totharv.A[WMD.id[i],t], tau.obs.A)
+      th.J[WMD.id[i],t] ~ dnorm(totharv.J[WMD.id[i],t], tau.obs.J)
       
       totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]*WMD.HR.A.2019[WMD.id[i]]
       totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]*WMD.HR.J.2019[WMD.id[i]]
     }
   
-    # N.A[WMD.id[i],1] <- dround((1+th.year1.A[WMD.id[i]])/.27,0)
-    # N.J[WMD.id[i],1] <- dround((1+th.year1.J[WMD.id[i]])/.17,0)
-    N.A[WMD.id[i],1] <- dround(1.6, 0)
-    N.J[WMD.id[i],1] <- dround(1.6, 0)
+    #Need to have specify N[t=1], needs to be a whole number.
+    N.A[WMD.id[i],1] <- round(((1+th.year1.A[WMD.id[i]])/WMD.HR.A.2019[WMD.id[i]]))
+    N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/WMD.HR.J.2019[WMD.id[i]]))
+    # N.A[WMD.id[i],1] <- (th.year1.A[WMD.id[i]]+1)*4
+    # N.J[WMD.id[i],1] <- (th.year1.J[WMD.id[i]]+1)*6
     
-    
+
     for(t in 2:n.years){
       N.A[WMD.id[i],t] <- n.surv.A[WMD.id[i],t-1] + n.surv.J[WMD.id[i],t-1]
       n.surv.A[WMD.id[i],t-1] ~ dbin(AnnualS.A[WMD.id[i]], N.A[WMD.id[i],t-1])
       n.surv.J[WMD.id[i],t-1] ~ dbin(AnnualS.J[WMD.id[i]], N.J[WMD.id[i],t-1])
-   
+
       N.J[WMD.id[i],t] ~ dpois(mean1[WMD.id[i],t-1])
       mean1[WMD.id[i],t-1] <- R[WMD.id[i],t-1] * (N.A[WMD.id[i],t-1] + N.J[WMD.id[i],t-1])
       R[WMD.id[i],t-1] ~ dunif(0,1)
     }
-    
+
     AnnualS.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W * (1 - WMD.HR.A.2019[WMD.id[i]])
     AnnualS.J[WMD.id[i]] <- S_M_J_W2S * S_M_J_S2W * (1 - WMD.HR.J.2019[WMD.id[i]])
   }
