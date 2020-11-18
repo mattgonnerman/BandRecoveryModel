@@ -734,7 +734,9 @@ parameters.null <- c('alpha_s',
                      'S_M_J_S2W', #Juvenile Survival Capture to Start of Hunting Season
                      'S_M_A_S2W', #Juvenile Survival Capture to Start of Hunting Season
                      'N.A',
-                     'N.J'
+                     'N.J',
+                     'mean.R',
+                     'sigma2.R'
 )
 
 #Initial values
@@ -743,9 +745,9 @@ inits.null <- function(){
 }
 
 #MCMC settings
-ni <- 25 #number of iterations
+ni <- 4000 #number of iterations
 nt <- 8 #thinning
-nb <- 5 #burn in period
+nb <- 1000 #burn in period
 nc <- 3 #number of chains
 
 #Model for JAGS
@@ -882,24 +884,30 @@ br_w_as_model <- function(){
   }
   
   #There is a directed cycle 
-  S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W), 36), .05)
-  S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W), 36), .05)
-  S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S), 11), .05)
-  S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S), 11), .05)
+  S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W[sampledwmd]), 36), .05)
+  S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W[sampledwmd]), 36), .05)
+  S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S[sampledwmd]), 11), .05)
+  S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S[sampledwmd]), 11), .05)
   # S_M_J_S2W ~ dnorm(pow(.97, 36), .05)
   # S_M_A_S2W ~ dnorm(pow(.97, 36), .05)
   # S_M_J_W2S ~ dnorm(pow(.97, 11), .05)
   # S_M_A_W2S ~ dnorm(pow(.97, 11), .05)
   
   ### State-Space Abundance
+  ##Priors
+  #Total Harvest Observation Error
   tau.obs.A <- pow(sigma.obs.A, -2)
   sigma2.obs.A <- pow(sigma.obs.A, 2)
   sigma.obs.A ~ dunif(0,100)
   tau.obs.J <- pow(sigma.obs.J, -2)
   sigma2.obs.J <- pow(sigma.obs.J, 2)
   sigma.obs.J ~ dunif(0,100)
+  #Recruitment Process
+  tau.R <- pow(sigma.R, -2)
+  sigma2.R <- pow(sigma.R, 2)
+  sigma.R ~ dunif(0,100)
+  
   for(i in 1:N.wmd){
-
     for(t in 1:n.years){
       th.A[WMD.id[i],t] ~ dnorm(totharv.A[WMD.id[i],t], tau.obs.A)
       th.J[WMD.id[i],t] ~ dnorm(totharv.J[WMD.id[i],t], tau.obs.J)
@@ -911,20 +919,22 @@ br_w_as_model <- function(){
     #Need to have specify N[t=1], needs to be a whole number.
     N.A[WMD.id[i],1] <- round(((1+th.year1.A[WMD.id[i]])/WMD.HR.A.2019[WMD.id[i]]))
     N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/WMD.HR.J.2019[WMD.id[i]]))
-    # N.A[WMD.id[i],1] <- (th.year1.A[WMD.id[i]]+1)*4
-    # N.J[WMD.id[i],1] <- (th.year1.J[WMD.id[i]]+1)*6
     
-
+    #Recruitment Rate, WMD specific
+    mean.R[WMD.id[i]] ~ dunif(0,10)
+    R[WMD.id[i]] ~ dnorm(mean.R[WMD.id[i]], tau.R)
+    
     for(t in 2:n.years){
       N.A[WMD.id[i],t] <- n.surv.A[WMD.id[i],t-1] + n.surv.J[WMD.id[i],t-1]
+      #Number of A and J to survive from t to t+1
       n.surv.A[WMD.id[i],t-1] ~ dbin(AnnualS.A[WMD.id[i]], N.A[WMD.id[i],t-1])
       n.surv.J[WMD.id[i],t-1] ~ dbin(AnnualS.J[WMD.id[i]], N.J[WMD.id[i],t-1])
 
       N.J[WMD.id[i],t] ~ dpois(mean1[WMD.id[i],t-1])
-      mean1[WMD.id[i],t-1] <- R[WMD.id[i],t-1] * (N.A[WMD.id[i],t-1] + N.J[WMD.id[i],t-1])
-      R[WMD.id[i],t-1] ~ dunif(0,1)
+      mean1[WMD.id[i],t-1] <- R[WMD.id[i]] * (N.A[WMD.id[i],t-1] + N.J[WMD.id[i],t-1])
     }
 
+    #Probability of surviving 1 year
     AnnualS.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W * (1 - WMD.HR.A.2019[WMD.id[i]])
     AnnualS.J[WMD.id[i]] <- S_M_J_W2S * S_M_J_S2W * (1 - WMD.HR.J.2019[WMD.id[i]])
   }
