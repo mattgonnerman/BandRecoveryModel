@@ -757,8 +757,8 @@ nc <- 3 #number of chains
 #Model for JAGS
 br_w_as_model <- function(){
   
-  ##Priors##
-  #Survival
+  ##############################################################################################
+  ### Weekly Survival Rate ###
   alpha_s ~ dbeta(1,1)
   intercept_s <- logit(alpha_s)
   beta_F_s ~ dunif(0,1) #Effect of sex on WSR (Male reference)
@@ -766,21 +766,6 @@ br_w_as_model <- function(){
   beta_A_F_s ~ dunif(0,1) #Interaction term for Age/Sex(Male Juv reference)
   beta_S2W_s ~ dunif(0,1) #Effect of S2W (W2S reference)
   for(i in sampledwmd){beta_wmd_s[i] ~ dunif(0,1)} #Effect of wmd (W2S reference)
-  
-  #Band Recovery
-  alpha_hr ~ dbeta(1,1)
-  intercept_hr <- logit(alpha_hr)
-  beta_A_hr ~ dunif(0,1) #Effect of Age on band recovery (Juv reference)
-  beta_2019_hr ~ dunif(0,1) #Effect of Year on band recovery (2019 vs other) #This could probably be coded as a loop in the future to make it easier for IFW
-  beta_2020_hr ~ dunif(0,1) #Effect of Year on band recovery (2020 vs other)
-  beta_spp ~ dnorm(0, 1)
-  
-  #Spatial Predictive Process
-  sigmasq <- 1/sigmasq.inv
-  sigmasq.inv ~ dgamma(2,1)
-  phi.spp ~ dgamma(1,0.1)
-  tausq <- 1/tausq.inv
-  tausq.inv ~ dgamma(0.1,0.1)
   
   #WSR
   for(i in 1:nvisit){
@@ -792,6 +777,15 @@ br_w_as_model <- function(){
     succ[i]~dbern(mu[i])  # the data is distributed as bernoulli with period survival as the mean
   }
   
+  ##############################################################################################
+  ### Band Recovery ###
+  alpha_hr ~ dbeta(1,1)
+  intercept_hr <- logit(alpha_hr)
+  beta_A_hr ~ dunif(0,1) #Effect of Age on band recovery (Juv reference)
+  beta_2019_hr ~ dunif(0,1) #Effect of Year on band recovery (2019 vs other) #This could probably be coded as a loop in the future to make it easier for IFW
+  beta_2020_hr ~ dunif(0,1) #Effect of Year on band recovery (2020 vs other)
+  beta_spp ~ dnorm(0, 1)
+
   #Specify period specific survival/band recovery
   for(j in 1:nind){
     for(t in f[j]:n.occasions){
@@ -817,8 +811,7 @@ br_w_as_model <- function(){
     var.all[i] <- tausq + sigmasq[1] - correction[i] 
   }
   
-  
-  ##Band Recovery Process##
+  ##Process##
   for(k in 1:nind){
     w[k,f[k]]<-1 #define true survival state at first capture
     z[k,f[k]]<-1 #define availability for natural risk at first capture
@@ -834,8 +827,14 @@ br_w_as_model <- function(){
     } #t
   } #k
   
+  ##############################################################################################
+  ### Spatial Predictive Process ###
+  sigmasq <- 1/sigmasq.inv
+  sigmasq.inv ~ dgamma(2,1)
+  phi.spp ~ dgamma(1,0.1)
+  tausq <- 1/tausq.inv
+  tausq.inv ~ dgamma(0.1,0.1)
   
-  ##Spatial Predictive Process##
   w.tilde.star[1:N.knot] ~ dmnorm(mu.w.star[1:N.knot], C.star.inv[1:N.knot,1:N.knot])
   C.star.inv[1:N.knot,1:N.knot] = inverse(C.star[1:N.knot,1:N.knot])
   
@@ -857,7 +856,8 @@ br_w_as_model <- function(){
     correction[i] = t(C.s.star[i,1:N.knot])%*%C.star.inv[1:N.knot,1:N.knot]%*%C.s.star[i,1:N.knot]
   }
   
-  ##HR/Pop/Survival Size Estimates
+  ##############################################################################################
+  ### Derived Parameters ###
   #Capture Site specific harvest rates
   for(i in 1:N.cap){
     logit(HR.A.2019.cap[i]) <- intercept_hr + beta_A_hr + beta_2019_hr + w.tilde[i] + e.cap[i]
@@ -884,8 +884,7 @@ br_w_as_model <- function(){
     logit(WSR_M_J_W2S[i]) <- intercept_s + beta_wmd_s[i]
     logit(WSR_M_A_W2S[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
   }
-  
-  #Averaged Period Specific Survival
+  #Averaged Period Specific Survival for all WMDs sampled
   S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W[sampledwmd]), 36), .05)
   S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W[sampledwmd]), 36), .05)
   S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S[sampledwmd]), 11), .05)
@@ -894,7 +893,8 @@ br_w_as_model <- function(){
   mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W
   mean.AnnualS.J <- S_M_J_W2S * S_M_J_S2W
   
-  ##State-Space Abundance Priors
+  ##############################################################################################
+  ### State-Space Abundance ###
   #Total Harvest Observation Error
   tau.obs.A <- pow(sigma.obs.A, -2)
   sigma2.obs.A <- pow(sigma.obs.A, 2)
@@ -941,7 +941,8 @@ br_w_as_model <- function(){
     N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]]))
     
     #Average Recruitment Rate, WMD specific
-    mean.R[WMD.id[i]] ~ dunif(0,2)
+    # mean.R[WMD.id[i]] ~ dunif(0,2)
+    mean.R[WMD.id[i]] ~ 1
     
     for(t in 1:(n.years-1)){
       #Number of birds to A to surive OR J that transition into A from t to t+1
@@ -949,9 +950,14 @@ br_w_as_model <- function(){
       n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t])
       n.surv.J[WMD.id[i],t] ~ dbin(totalS.J[WMD.id[i],t], N.J[WMD.id[i],t])
       
+      #Total Annual Survival Probability
       totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-WMD.HR.A[WMD.id[i],t])
       totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-WMD.HR.J[WMD.id[i],t])
       
+      #Temporal Variation in probability of surviving non harvest risk in a year
+      AnnualS.A[WMD.id[i],t] ~ dnorm(mean.AnnualS.A, tau.surv.A)
+      AnnualS.J[WMD.id[i],t] ~ dnorm(mean.AnnualS.J, tau.surv.J)
+    
       #Number of Birds recruited to the Juvenile population in t
       N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
       meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])
@@ -959,10 +965,7 @@ br_w_as_model <- function(){
       #Year Specific recruitment rate
       R[WMD.id[i],t] ~ dnorm(mean.R[WMD.id[i]], tau.R)
       
-      #Temporal Variation in probability of surviving non harvest risk in a year
-      AnnualS.A[WMD.id[i],t] ~ dnorm(mean.AnnualS.A, tau.surv.A)
-      AnnualS.J[WMD.id[i],t] ~ dnorm(mean.AnnualS.J, tau.surv.J)
-    }
+}
   }
 }
 
