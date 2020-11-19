@@ -890,6 +890,9 @@ br_w_as_model <- function(){
   S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W[sampledwmd]), 36), .05)
   S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S[sampledwmd]), 11), .05)
   S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S[sampledwmd]), 11), .05)
+  #Average Non Harvest Survival by WMD
+  mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W
+  mean.AnnualS.J <- S_M_J_W2S * S_M_J_S2W
   
   ##State-Space Abundance Priors
   #Total Harvest Observation Error
@@ -902,7 +905,7 @@ br_w_as_model <- function(){
   #Recruitment Process Error
   tau.R <- pow(sigma.R, -2)
   sigma2.R <- pow(sigma.R, 2)
-  sigma.R ~ dunif(0,100)
+  sigma.R ~ dunif(0,10)
   #Survival Annual Process Error
   tau.surv.A <- pow(sigma.surv.A, -2)
   sigma2.surv.A <- pow(sigma.surv.A, 2)
@@ -934,21 +937,24 @@ br_w_as_model <- function(){
     
     #Need to have specify N[t=1], needs to be a whole number.
     #th.year1 are just the harvest totals from year 1 
-    N.A[WMD.id[i],1] <- round(((1+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1]))
-    N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1]))
+    N.A[WMD.id[i],1] <- round(((1+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]]))
+    N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]]))
     
     #Average Recruitment Rate, WMD specific
-    mean.R[WMD.id[i]] ~ dunif(0,10)
+    mean.R[WMD.id[i]] ~ dunif(0,2)
     
     for(t in 1:(n.years-1)){
       #Number of birds to A to surive OR J that transition into A from t to t+1
       N.A[WMD.id[i],t+1] <- n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t]
-      n.surv.A[WMD.id[i],t] ~ dbin(AnnualS.A[WMD.id[i],t]*WMD.HR.J[WMD.id[i],t], N.A[WMD.id[i],t])
-      n.surv.J[WMD.id[i],t] ~ dbin(AnnualS.J[WMD.id[i],t]*WMD.HR.J[WMD.id[i],t], N.J[WMD.id[i],t])
+      n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t])
+      n.surv.J[WMD.id[i],t] ~ dbin(totalS.J[WMD.id[i],t], N.J[WMD.id[i],t])
+      
+      totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-WMD.HR.A[WMD.id[i],t])
+      totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-WMD.HR.J[WMD.id[i],t])
       
       #Number of Birds recruited to the Juvenile population in t
-      N.J[WMD.id[i],t+1] ~ dpois(mean1[WMD.id[i],t])
-      mean1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])
+      N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
+      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])
       
       #Year Specific recruitment rate
       R[WMD.id[i],t] ~ dnorm(mean.R[WMD.id[i]], tau.R)
@@ -958,9 +964,6 @@ br_w_as_model <- function(){
       AnnualS.J[WMD.id[i],t] ~ dnorm(mean.AnnualS.J, tau.surv.J)
     }
   }
-  #Average Non Harvest Survival by WMD
-  mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W
-  mean.AnnualS.J <- S_M_J_W2S * S_M_J_S2W
 }
 
 
