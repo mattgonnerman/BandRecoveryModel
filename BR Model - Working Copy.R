@@ -561,7 +561,7 @@ allyearharv.J <- as.matrix(allyearsharvest[,((ncol(allyearsharvest)+1)/2):(ncol(
 #Only want from 2014-2019
 totharv.A <- allyearharv.A[,(ncol(allyearharv.A)-5):ncol(allyearharv.A)]
 totharv.J <- allyearharv.J[,(ncol(allyearharv.J)-5):ncol(allyearharv.J)]
-  
+
 
 ### Need number of weeks from capture to first hunting season for each banded bird
 capdate.df <- trap.raw %>% filter(Recapture != "Y") %>%
@@ -736,7 +736,11 @@ parameters.null <- c('alpha_s',
                      'N.A',
                      'N.J',
                      'mean.R',
-                     'sigma2.R'
+                     'sigma2.R',
+                     'mean.AnnualS.J',
+                     'mean.AnnualS.A',
+                     'sigma2.pop.J',
+                     'sigma2.pop.A'
 )
 
 #Initial values
@@ -747,7 +751,7 @@ inits.null <- function(){
 #MCMC settings
 ni <- 4000 #number of iterations
 nt <- 8 #thinning
-nb <- 1000 #burn in period
+nb <- 2000 #burn in period
 nc <- 3 #number of chains
 
 #Model for JAGS
@@ -866,7 +870,7 @@ br_w_as_model <- function(){
     logit(HR.A.2020.knot[i]) <- intercept_hr + beta_A_hr + beta_2020_hr + w.tilde.star[i]
     logit(HR.J.2020.knot[i]) <- intercept_hr + beta_2020_hr + w.tilde.star[i]
   }
-
+  
   ### WMD Specific Harvest Rates
   for(i in 1:N.wmd){
     WMD.HR.J.2019[WMD.id[i]] <- mean(HR.J.2019.knot[WMD.matrix[i, 1:WMD.vec[i]]])
@@ -874,7 +878,7 @@ br_w_as_model <- function(){
     WMD.HR.J.2020[WMD.id[i]] <- mean(HR.J.2020.knot[WMD.matrix[i, 1:WMD.vec[i]]])
     WMD.HR.A.2020[WMD.id[i]] <- mean(HR.A.2020.knot[WMD.matrix[i, 1:WMD.vec[i]]])
   }
-
+  
   ### Period Specific Survival
   for(i in sampledwmd){
     logit(WSR_M_J_S2W[i]) <- intercept_s + beta_S2W_s + beta_wmd_s[i]
@@ -883,18 +887,12 @@ br_w_as_model <- function(){
     logit(WSR_M_A_W2S[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
   }
   
-  #There is a directed cycle 
   S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W[sampledwmd]), 36), .05)
   S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W[sampledwmd]), 36), .05)
   S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S[sampledwmd]), 11), .05)
   S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S[sampledwmd]), 11), .05)
-  # S_M_J_S2W ~ dnorm(pow(.97, 36), .05)
-  # S_M_A_S2W ~ dnorm(pow(.97, 36), .05)
-  # S_M_J_W2S ~ dnorm(pow(.97, 11), .05)
-  # S_M_A_W2S ~ dnorm(pow(.97, 11), .05)
   
-  ### State-Space Abundance
-  ##Priors
+  ##State-Space Abundance Priors
   #Total Harvest Observation Error
   tau.obs.A <- pow(sigma.obs.A, -2)
   sigma2.obs.A <- pow(sigma.obs.A, 2)
@@ -906,6 +904,13 @@ br_w_as_model <- function(){
   tau.R <- pow(sigma.R, -2)
   sigma2.R <- pow(sigma.R, 2)
   sigma.R ~ dunif(0,100)
+  #Population Process
+  tau.pop.A <- pow(sigma.pop.A, -2)
+  sigma2.pop.A <- pow(sigma.pop.A, 2)
+  sigma.pop.A ~ dunif(0,1)
+  tau.pop.J <- pow(sigma.pop.J, -2)
+  sigma2.pop.J <- pow(sigma.pop.J, 2)
+  sigma.pop.J ~ dunif(0,1)
   
   for(i in 1:N.wmd){
     for(t in 1:n.years){
@@ -914,8 +919,10 @@ br_w_as_model <- function(){
       
       totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]*WMD.HR.A.2019[WMD.id[i]]
       totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]*WMD.HR.J.2019[WMD.id[i]]
+      
+      
     }
-  
+    
     #Need to have specify N[t=1], needs to be a whole number.
     N.A[WMD.id[i],1] <- round(((1+th.year1.A[WMD.id[i]])/WMD.HR.A.2019[WMD.id[i]]))
     N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/WMD.HR.J.2019[WMD.id[i]]))
@@ -925,18 +932,22 @@ br_w_as_model <- function(){
     R[WMD.id[i]] ~ dnorm(mean.R[WMD.id[i]], tau.R)
     
     for(t in 2:n.years){
+      #Number of birds to survive/transition into A from t-1 to t
       N.A[WMD.id[i],t] <- n.surv.A[WMD.id[i],t-1] + n.surv.J[WMD.id[i],t-1]
-      #Number of A and J to survive from t to t+1
-      n.surv.A[WMD.id[i],t-1] ~ dbin(AnnualS.A[WMD.id[i]], N.A[WMD.id[i],t-1])
-      n.surv.J[WMD.id[i],t-1] ~ dbin(AnnualS.J[WMD.id[i]], N.J[WMD.id[i],t-1])
-
+      n.surv.A[WMD.id[i],t-1] ~ dbin(AnnualS.A[WMD.id[i],t], N.A[WMD.id[i],t-1])
+      n.surv.J[WMD.id[i],t-1] ~ dbin(AnnualS.J[WMD.id[i],t], N.J[WMD.id[i],t-1])
+      
+      #Number of Birds recruited to the Juvenile population in t
       N.J[WMD.id[i],t] ~ dpois(mean1[WMD.id[i],t-1])
       mean1[WMD.id[i],t-1] <- R[WMD.id[i]] * (N.A[WMD.id[i],t-1] + N.J[WMD.id[i],t-1])
+      
+      #Temporal Variation in probability of surviving 1 year
+      AnnualS.A[WMD.id[i],t] ~ dnorm(mean.AnnualS.A[WMD.id[i]], tau.pop.A)
+      AnnualS.J[WMD.id[i],t] ~ dnorm(mean.AnnualS.J[WMD.id[i]], tau.pop.J)
     }
-
-    #Probability of surviving 1 year
-    AnnualS.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W * (1 - WMD.HR.A.2019[WMD.id[i]])
-    AnnualS.J[WMD.id[i]] <- S_M_J_W2S * S_M_J_S2W * (1 - WMD.HR.J.2019[WMD.id[i]])
+    #Average Annual Survival by WMD
+    mean.AnnualS.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W * (1 - WMD.HR.A.2019[WMD.id[i]])
+    mean.AnnualS.J[WMD.id[i]] <- S_M_J_W2S * S_M_J_S2W * (1 - WMD.HR.J.2019[WMD.id[i]])
   }
 }
 
