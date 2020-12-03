@@ -969,8 +969,7 @@ br_w_as_model <- function(){
       
       #Year Specific recruitment rate
       R[WMD.id[i],t] ~ dnorm(mean.R[WMD.id[i]], tau.R)
-      
-}
+      }
   }
 }
 
