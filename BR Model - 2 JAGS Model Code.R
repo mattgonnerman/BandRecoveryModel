@@ -126,10 +126,35 @@ function(){#####################################################################
   }
   
   #Averaged Period Specific Survival for all WMDs sampled
-  S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W[sampledwmd]), 36), .05)
-  S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W[sampledwmd]), 36), .05)
-  S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S[sampledwmd]), 11), .05)
-  S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S[sampledwmd]), 11), .05)
+  S_M_J_S2W ~ dbeta(a.J.S2W, b.J.S2W)
+  mu1 <- pow(mean(WSR_M_J_S2W[sampledwmd]), 36)
+  sd1 ~ dunif(0, 1)
+  a.J.S2W <- mu1/(sd1*sd1)
+  b.J.S2W <- (1-mu1)/(sd1*sd1)
+  
+  S_M_A_S2W ~ dbeta(a.A.S2W, b.A.S2W)
+  mu2 <- pow(mean(WSR_M_A_S2W[sampledwmd]), 36)
+  sd2 ~ dunif(0, 1)
+  a.A.S2W <- mu2/(sd2*sd2)
+  b.A.S2W <- (1-mu2)/(sd2*sd2)
+ 
+  S_M_J_W2S ~ dbeta(a.J.W2S, b.J.W2S)
+  mu3 <- pow(mean(WSR_M_J_W2S[sampledwmd]), 11)
+  sd3 ~ dunif(0, 1)
+  a.J.W2S <- mu3/(sd3*sd3)
+  b.J.W2S <- (1-mu3)/(sd3*sd3)
+  
+  S_M_A_W2S ~ dbeta(a.A.W2S, b.A.W2S)
+  mu4 <- pow(mean(WSR_M_A_W2S[sampledwmd]), 11)
+  sd4 ~ dunif(0, 1)
+  a.A.W2S <- mu4/(sd4*sd4)
+  b.A.W2S <- (1-mu4)/(sd4*sd4)
+  
+  
+  # S_M_J_S2W ~ dnorm(pow(mean(WSR_M_J_S2W[sampledwmd]), 36), .05)
+  # S_M_A_S2W ~ dnorm(pow(mean(WSR_M_A_S2W[sampledwmd]), 36), .05)
+  # S_M_J_W2S ~ dnorm(pow(mean(WSR_M_J_W2S[sampledwmd]), 11), .05)
+  # S_M_A_W2S ~ dnorm(pow(mean(WSR_M_A_W2S[sampledwmd]), 11), .05)
   
   #Average Non Harvest Survival by WMD
   mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W
