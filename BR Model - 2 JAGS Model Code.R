@@ -126,31 +126,31 @@ function(){#####################################################################
   }
   
   #Averaged Period Specific Survival for all WMDs sampled
-  tau.S2W.A <- pow(sigma.S2W.A, -2)
-  sigma2.S2W.A <- pow(sigma.S2W.A, 2)
-  sigma.S2W.A ~ dunif(0,100)
-  
-  tau.W2S.A <- pow(sigma.W2S.A, -2)
-  sigma2.W2S.A <- pow(sigma.W2S.A, 2)
-  sigma.W2S.A ~ dunif(0,100)
-  
-  tau.S2W.J <- pow(sigma.S2W.J, -2)
-  sigma2.S2W.J <- pow(sigma.S2W.J, 2)
-  sigma.S2W.J ~ dunif(0,100)  
-  
-  tau.W2S.J <- pow(sigma.W2S.J, -2)
-  sigma2.W2S.J <- pow(sigma.W2S.J, 2)
-  sigma.W2S.J ~ dunif(0,100)
-  
-  l.S_M_J_S2W ~ dnorm(logit(pow(mean(WSR_M_J_S2W[sampledwmd]), 36)), tau.S2W.J)
-  l.S_M_A_S2W ~ dnorm(logit(pow(mean(WSR_M_A_S2W[sampledwmd]), 36)), tau.S2W.A)
-  l.S_M_J_W2S ~ dnorm(logit(pow(mean(WSR_M_J_W2S[sampledwmd]), 11)), tau.W2S.J)
-  l.S_M_A_W2S ~ dnorm(logit(pow(mean(WSR_M_A_W2S[sampledwmd]), 11)), tau.W2S.A)
-  
-  logit(S_M_J_S2W) <- l.S_M_J_S2W
-  logit(S_M_A_S2W) <- l.S_M_A_S2W
-  logit(S_M_J_W2S) <- l.S_M_J_W2S
-  logit(S_M_A_W2S) <- l.S_M_A_W2S
+  # tau.S2W.A <- pow(sigma.S2W.A, -2)
+  # sigma.S2W.A ~ dunif(0,100)
+  # 
+  # tau.W2S.A <- pow(sigma.W2S.A, -2)
+  # sigma.W2S.A ~ dunif(0,100)
+  # 
+  # tau.S2W.J <- pow(sigma.S2W.J, -2)
+  # sigma.S2W.J ~ dunif(0,100)  
+  # 
+  # tau.W2S.J <- pow(sigma.W2S.J, -2)
+  # sigma.W2S.J ~ dunif(0,100)
+  # 
+  # l.S_M_J_S2W ~ dnorm(logit(pow(mean(WSR_M_J_S2W[sampledwmd]), 36)), tau.S2W.J)
+  # l.S_M_A_S2W ~ dnorm(logit(pow(mean(WSR_M_A_S2W[sampledwmd]), 36)), tau.S2W.A)
+  # l.S_M_J_W2S ~ dnorm(logit(pow(mean(WSR_M_J_W2S[sampledwmd]), 11)), tau.W2S.J)
+  # l.S_M_A_W2S ~ dnorm(logit(pow(mean(WSR_M_A_W2S[sampledwmd]), 11)), tau.W2S.A)
+  # 
+  # logit(S_M_J_S2W) <- l.S_M_J_S2W
+  # logit(S_M_A_S2W) <- l.S_M_A_S2W
+  # logit(S_M_J_W2S) <- l.S_M_J_W2S
+  # logit(S_M_A_W2S) <- l.S_M_A_W2S
+  S_M_J_S2W <- pow(mean(WSR_M_J_S2W[sampledwmd]), 36)
+  S_M_A_S2W <- pow(mean(WSR_M_A_S2W[sampledwmd]), 36)
+  S_M_J_W2S <- pow(mean(WSR_M_J_W2S[sampledwmd]), 11)
+  S_M_A_W2S <- pow(mean(WSR_M_A_W2S[sampledwmd]), 11)
   
   #Average Non Harvest Survival by WMD
   mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W
@@ -160,48 +160,42 @@ function(){#####################################################################
   ### State-Space Abundance ###
   #Total Harvest Observation Error
   tau.obs.A <- pow(sigma.obs.A, -2)
-  sigma2.obs.A <- pow(sigma.obs.A, 2)
   sigma.obs.A ~ dunif(0,100)
   tau.obs.J <- pow(sigma.obs.J, -2)
-  sigma2.obs.J <- pow(sigma.obs.J, 2)
   sigma.obs.J ~ dunif(0,100)
   
   #Recruitment Process Error
   tau.R <- pow(sigma.R, -2)
-  sigma2.R <- pow(sigma.R, 2)
   sigma.R ~ dunif(0,10)
   
   #Survival Annual Process Error
   tau.surv.A <- pow(sigma.surv.A, -2)
-  sigma2.surv.A <- pow(sigma.surv.A, 2)
   sigma.surv.A ~ dunif(0,1)
   tau.surv.J <- pow(sigma.surv.J, -2)
-  sigma2.surv.J <- pow(sigma.surv.J, 2)
   sigma.surv.J ~ dunif(0,1)
   
   #Harvest Rate Annual Process Error
   tau.harv.A <- pow(sigma.harv.A, -2)
-  sigma2.harv.A <- pow(sigma.harv.A, 2)
   sigma.harv.A ~ dunif(0,1)
   tau.harv.J <- pow(sigma.harv.J, -2)
-  sigma2.harv.J <- pow(sigma.harv.J, 2)
   sigma.harv.J ~ dunif(0,1)
   
   for(i in 1:N.wmd){
     for(t in 1:n.years){
-      #Total harvest Observation
-      # th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], round(N.A[WMD.id[i],t]))
-      # th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], round(N.J[WMD.id[i],t]))
-      th.A[WMD.id[i],t] ~ dnorm(totharv.A[WMD.id[i],t], tau.obs.A)
-      th.J[WMD.id[i],t] ~ dnorm(totharv.J[WMD.id[i],t], tau.obs.J)
-      #Total harvested = Harvest Rate * Total Abundance
-      totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]*WMD.HR.A[WMD.id[i],t]
-      totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]*WMD.HR.J[WMD.id[i],t]
+      # #Total harvest Observation
+      th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], N.A[WMD.id[i],t])
+      th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], N.J[WMD.id[i],t])
+
+      # th.A[WMD.id[i],t] ~ dnorm(totharv.A[WMD.id[i],t], tau.obs.A)
+      # th.J[WMD.id[i],t] ~ dnorm(totharv.J[WMD.id[i],t], tau.obs.J)
+      # #Total harvested = Harvest Rate * Total Abundance
+      # totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]*WMD.HR.A[WMD.id[i],t]
+      # totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]*WMD.HR.J[WMD.id[i],t]
       
       #Annual Variation in Harvest Rate
       l.WMD.HR.A[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A)
       l.WMD.HR.J[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.J[WMD.id[i]]), tau.harv.J)
-      
+
       logit(WMD.HR.A[WMD.id[i],t]) <- l.WMD.HR.A[WMD.id[i],t]
       logit(WMD.HR.J[WMD.id[i],t]) <- l.WMD.HR.J[WMD.id[i],t]
     }
@@ -211,7 +205,7 @@ function(){#####################################################################
     #This assumes there are some turkeys in each WMD at the first timestep
     N.A[WMD.id[i],1] <- round(((1+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]]))
     N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]]))
-    
+
     #Average Recruitment Rate, WMD specific
     mean.R[WMD.id[i]] ~ dunif(0,2)
     
@@ -234,7 +228,8 @@ function(){#####################################################################
       
       #Number of Birds recruited to the Juvenile population in t
       N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
-      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])
+      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t] + N.J[WMD.id[i],t]
+      # meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] )
       
       #Year Specific recruitment rate
       log.R[WMD.id[i],t] ~ dlnorm(log(mean.R[WMD.id[i]]), tau.R)

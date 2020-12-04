@@ -64,41 +64,45 @@ parameters.null <- c('alpha_s',
                      'phi.spp', 
                      'sigmasq',
                      'tausq',
-                     # 'HR.A.2019.knot',
-                     # 'HR.J.2019.knot',
-                     # 'HR.A.2019.cap',
-                     # 'HR.J.2019.cap',
+                     'HR.A.2019.knot',
+                     'HR.J.2019.knot',
+                     'HR.A.2019.cap',
+                     'HR.J.2019.cap',
                      'mean.WMD.HR.A',
                      'mean.WMD.HR.J',
-                     'sigma2.harv.A',
-                     'sigma2.harv.J',
+                     'sigma.harv.A',
+                     'sigma.harv.J',
+                     'WSR_M_J_S2W', #Site Specific Survival, checking issue
                      'S_M_J_W2S', #Period Specific Survival 
-                     'sigma2.W2S.J',
+                     # 'sigma.W2S.J',
                      'S_M_A_W2S', 
-                     'sigma2.W2S.A',
+                     # 'sigma.W2S.A',
                      'S_M_J_S2W', 
-                     'sigma2.S2W.J',
+                     # 'sigma.S2W.J',
                      'S_M_A_S2W', 
-                     'sigma2.S2W.A',
+                     # 'sigma.S2W.A',
                      'N.A', #SS Abundance
                      'N.J',
                      'mean.R', #Recruitment Rate
-                     'sigma2.R',
+                     'sigma.R',
                      'mean.AnnualS.J',#NonHarvest Survival in SS Abun
                      'mean.AnnualS.A',
-                     'sigma2.surv.J',
-                     'sigma2.surv.A'
+                     'sigma.surv.J',
+                     'sigma.surv.A',
+                     'totalS.A'
 )
+
 
 #Initial values
 inits.null <- function(){
-  list(z = mr.init.z(EH_raw))
+  list(z = mr.init.z(EH_raw)
+       )
 }
 
 #MCMC settings
-ni <- 20 #number of iterations
+ni <- 2000 #number of iterations
 nt <- 8 #thinning
-nb <- 10 #burn in period
+nb <- 1000 #burn in period
 nc <- 3 #number of chains
 
 #Model for JAGS
