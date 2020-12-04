@@ -190,8 +190,8 @@ function(){#####################################################################
   for(i in 1:N.wmd){
     for(t in 1:n.years){
       #Total harvest Observation
-      th.A[WMD.id[i],t] ~ dnorm(totharv.A[WMD.id[i],t], tau.obs.A)
-      th.J[WMD.id[i],t] ~ dnorm(totharv.J[WMD.id[i],t], tau.obs.J)
+      th.A[WMD.id[i],t] ~ dpois(totharv.A[WMD.id[i],t], tau.obs.A)
+      th.J[WMD.id[i],t] ~ dpois(totharv.J[WMD.id[i],t], tau.obs.J)
       
       #Total harvested = Harvest Rate * Total Abundance
       totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]*WMD.HR.A[WMD.id[i],t]
@@ -211,8 +211,7 @@ function(){#####################################################################
     N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]]))
     
     #Average Recruitment Rate, WMD specific
-    # mean.R[WMD.id[i]] ~ dunif(0,2)
-    mean.R[WMD.id[i]] <- .5
+    mean.R[WMD.id[i]] ~ dunif(0,2)
     
     for(t in 1:(n.years-1)){
       #Number of birds to A to surive OR J that transition into A from t to t+1
@@ -235,7 +234,8 @@ function(){#####################################################################
       meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])
       
       #Year Specific recruitment rate
-      R[WMD.id[i],t] ~ dnorm(mean.R[WMD.id[i]], tau.R)
+      log.R[WMD.id[i],t] ~ dlnorm(log(mean.R[WMD.id[i]]), tau.R)
+      log(R[WMD.id[i],t]) <- log.R[WMD.id[i],t]
     }
   }
 }
