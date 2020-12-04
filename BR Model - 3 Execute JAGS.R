@@ -59,28 +59,32 @@ parameters.null <- c('alpha_s',
                      'beta_A_hr', #Harvest Rate Betas - Adult
                      'beta_2019_hr', #Harvest Rate Betas - 2019
                      'beta_2020_hr', #Harvest Rate Betas - 2020
-                     'w.tilde', 
-                     'w.tilde.star',
+                     # 'w.tilde', 
+                     # 'w.tilde.star',
                      'phi.spp', 
                      'sigmasq',
                      'tausq',
-                     'HR.A.2019.knot',
-                     'HR.J.2019.knot',
-                     'HR.A.2019.cap',
-                     'HR.J.2019.cap',
+                     # 'HR.A.2019.knot',
+                     # 'HR.J.2019.knot',
+                     # 'HR.A.2019.cap',
+                     # 'HR.J.2019.cap',
                      'mean.WMD.HR.A',
                      'mean.WMD.HR.J',
                      'sigma2.harv.A',
                      'sigma2.harv.J',
-                     'S_M_J_W2S', #Juvenile Survival Capture to Start of Hunting Season
-                     'S_M_A_W2S', #Juvenile Survival Capture to Start of Hunting Season
-                     'S_M_J_S2W', #Juvenile Survival Capture to Start of Hunting Season
-                     'S_M_A_S2W', #Juvenile Survival Capture to Start of Hunting Season
-                     'N.A',
+                     'S_M_J_W2S', #Period Specific Survival 
+                     'sigma2.W2S.J',
+                     'S_M_A_W2S', 
+                     'sigma2.W2S.A',
+                     'S_M_J_S2W', 
+                     'sigma2.S2W.J',
+                     'S_M_A_S2W', 
+                     'sigma2.S2W.A',
+                     'N.A', #SS Abundance
                      'N.J',
-                     'mean.R',
+                     'mean.R', #Recruitment Rate
                      'sigma2.R',
-                     'mean.AnnualS.J',
+                     'mean.AnnualS.J',#NonHarvest Survival in SS Abun
                      'mean.AnnualS.A',
                      'sigma2.surv.J',
                      'sigma2.surv.A'

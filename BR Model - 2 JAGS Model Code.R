@@ -192,10 +192,9 @@ function(){#####################################################################
       #Total harvest Observation
       # th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], round(N.A[WMD.id[i],t]))
       # th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], round(N.J[WMD.id[i],t]))
-      
       th.A[WMD.id[i],t] ~ dnorm(totharv.A[WMD.id[i],t], tau.obs.A)
       th.J[WMD.id[i],t] ~ dnorm(totharv.J[WMD.id[i],t], tau.obs.J)
-      # #Total harvested = Harvest Rate * Total Abundance
+      #Total harvested = Harvest Rate * Total Abundance
       totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]*WMD.HR.A[WMD.id[i],t]
       totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]*WMD.HR.J[WMD.id[i],t]
       
@@ -210,8 +209,8 @@ function(){#####################################################################
     #Need to specify N[t=1], needs to be a whole number.
     #th.year1 are just the harvest totals from year 1 
     #This assumes there are some turkeys in each WMD at the first timestep
-    N.A[WMD.id[i],1] <- round(((1+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1]))
-    N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/WMD.HR.A[WMD.id[i],1]))
+    N.A[WMD.id[i],1] <- round(((1+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]]))
+    N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]]))
     
     #Average Recruitment Rate, WMD specific
     mean.R[WMD.id[i]] ~ dunif(0,2)
@@ -238,8 +237,8 @@ function(){#####################################################################
       meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])
       
       #Year Specific recruitment rate
-      R[WMD.id[i],t] ~ dlnorm(mean.R[WMD.id[i]], tau.R)
-      # log(R[WMD.id[i],t]) <- log.R[WMD.id[i],t]
+      log.R[WMD.id[i],t] ~ dlnorm(log(mean.R[WMD.id[i]]), tau.R)
+      log(R[WMD.id[i],t]) <- log.R[WMD.id[i],t]
     }
   }
 }
