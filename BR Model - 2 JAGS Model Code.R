@@ -198,13 +198,25 @@ function(){#####################################################################
 
       logit(WMD.HR.A[WMD.id[i],t]) <- l.WMD.HR.A[WMD.id[i],t]
       logit(WMD.HR.J[WMD.id[i],t]) <- l.WMD.HR.J[WMD.id[i],t]
+      
+      #Temporal Variation in probability of surviving non harvest risk in a year
+      logit(AnnualS.A[WMD.id[i],t]) <- l.AnnualS.A[WMD.id[i],t]
+      logit(AnnualS.J[WMD.id[i],t]) <- l.AnnualS.J[WMD.id[i],t]
+      
+      l.AnnualS.A[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.A), tau.surv.A)
+      l.AnnualS.J[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.J), tau.surv.J)
+      
+      #Total Annual Survival Probability
+      totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-WMD.HR.A[WMD.id[i],t])
+      totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-WMD.HR.J[WMD.id[i],t])
+      
     }
     
     #Need to specify N[t=1], needs to be a whole number.
     #th.year1 are just the harvest totals from year 1 
     #This assumes there are some turkeys in each WMD at the first timestep
-    N.A[WMD.id[i],1] <- round(((1+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]]))
-    N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]]))
+    N.A[WMD.id[i],1] ~ dpois(round(((1+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]])))
+    N.J[WMD.id[i],1] ~ dpois(round(((1+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])))
 
     #Average Recruitment Rate, WMD specific
     mean.R[WMD.id[i]] ~ dunif(0,2)
@@ -215,21 +227,10 @@ function(){#####################################################################
       n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t])
       n.surv.J[WMD.id[i],t] ~ dbin(totalS.J[WMD.id[i],t], N.J[WMD.id[i],t])
       
-      #Total Annual Survival Probability
-      totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-WMD.HR.A[WMD.id[i],t])
-      totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-WMD.HR.J[WMD.id[i],t])
-      
-      #Temporal Variation in probability of surviving non harvest risk in a year
-      logit(AnnualS.A[WMD.id[i],t]) <- l.AnnualS.A[WMD.id[i],t]
-      logit(AnnualS.J[WMD.id[i],t]) <- l.AnnualS.J[WMD.id[i],t]
-      
-      l.AnnualS.A[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.A), tau.surv.A)
-      l.AnnualS.J[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.J), tau.surv.J)
-      
       #Number of Birds recruited to the Juvenile population in t
       N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
-      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t] + N.J[WMD.id[i],t]
-      # meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] )
+      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])
+      # meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t]
       
       #Year Specific recruitment rate
       log.R[WMD.id[i],t] ~ dlnorm(log(mean.R[WMD.id[i]]), tau.R)
