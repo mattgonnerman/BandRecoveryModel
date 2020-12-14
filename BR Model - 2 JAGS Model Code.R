@@ -126,27 +126,6 @@ function(){#####################################################################
   }
   
   #Averaged Period Specific Survival for all WMDs sampled
-  # tau.S2W.A <- pow(sigma.S2W.A, -2)
-  # sigma.S2W.A ~ dunif(0,100)
-  # 
-  # tau.W2S.A <- pow(sigma.W2S.A, -2)
-  # sigma.W2S.A ~ dunif(0,100)
-  # 
-  # tau.S2W.J <- pow(sigma.S2W.J, -2)
-  # sigma.S2W.J ~ dunif(0,100)  
-  # 
-  # tau.W2S.J <- pow(sigma.W2S.J, -2)
-  # sigma.W2S.J ~ dunif(0,100)
-  # 
-  # l.S_M_J_S2W ~ dnorm(logit(pow(mean(WSR_M_J_S2W[sampledwmd]), 36)), tau.S2W.J)
-  # l.S_M_A_S2W ~ dnorm(logit(pow(mean(WSR_M_A_S2W[sampledwmd]), 36)), tau.S2W.A)
-  # l.S_M_J_W2S ~ dnorm(logit(pow(mean(WSR_M_J_W2S[sampledwmd]), 11)), tau.W2S.J)
-  # l.S_M_A_W2S ~ dnorm(logit(pow(mean(WSR_M_A_W2S[sampledwmd]), 11)), tau.W2S.A)
-  # 
-  # logit(S_M_J_S2W) <- l.S_M_J_S2W
-  # logit(S_M_A_S2W) <- l.S_M_A_S2W
-  # logit(S_M_J_W2S) <- l.S_M_J_W2S
-  # logit(S_M_A_W2S) <- l.S_M_A_W2S
   S_M_J_S2W <- pow(mean(WSR_M_J_S2W[sampledwmd]), 36)
   S_M_A_S2W <- pow(mean(WSR_M_A_S2W[sampledwmd]), 36)
   S_M_J_W2S <- pow(mean(WSR_M_J_W2S[sampledwmd]), 11)
@@ -185,12 +164,6 @@ function(){#####################################################################
       # #Total harvest Observation
       th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], N.A[WMD.id[i],t])
       th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], N.J[WMD.id[i],t])
-
-      # th.A[WMD.id[i],t] ~ dnorm(totharv.A[WMD.id[i],t], tau.obs.A)
-      # th.J[WMD.id[i],t] ~ dnorm(totharv.J[WMD.id[i],t], tau.obs.J)
-      # #Total harvested = Harvest Rate * Total Abundance
-      # totharv.A[WMD.id[i],t] <- N.A[WMD.id[i],t]*WMD.HR.A[WMD.id[i],t]
-      # totharv.J[WMD.id[i],t] <- N.J[WMD.id[i],t]*WMD.HR.J[WMD.id[i],t]
       
       #Annual Variation in Harvest Rate
       l.WMD.HR.A[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A)
@@ -218,23 +191,24 @@ function(){#####################################################################
     N.A[WMD.id[i],1] ~ dpois(round(((1+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]])))
     N.J[WMD.id[i],1] ~ dpois(round(((1+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])))
 
-    #Average Recruitment Rate, WMD specific
-    mean.R[WMD.id[i]] ~ dunif(0,2)
-    
     for(t in 1:(n.years-1)){
       #Number of birds to A to surive OR J that transition into A from t to t+1
-      N.A[WMD.id[i],t+1] <- n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t]
-      n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t])
-      n.surv.J[WMD.id[i],t] ~ dbin(totalS.J[WMD.id[i],t], N.J[WMD.id[i],t])
+      # N.A[WMD.id[i],t+1] <- n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t]
+      # n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t])
+      # n.surv.J[WMD.id[i],t] ~ dbin(totalS.J[WMD.id[i],t], N.J[WMD.id[i],t])
+      N.A[WMD.id[i],t+1] ~ dpois(n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t])
+      n.surv.A[WMD.id[i],t] <- totalS.A[WMD.id[i],t] * N.A[WMD.id[i],t]
+      n.surv.J[WMD.id[i],t] <- totalS.J[WMD.id[i],t] * N.J[WMD.id[i],t]
       
       #Number of Birds recruited to the Juvenile population in t
       N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
-      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])
-      # meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t]
+      meanY1[WMD.id[i],t] <- 1 + (R[WMD.id[i],t] * N.A[WMD.id[i],t])
       
       #Year Specific recruitment rate
       log.R[WMD.id[i],t] ~ dlnorm(log(mean.R[WMD.id[i]]), tau.R)
       log(R[WMD.id[i],t]) <- log.R[WMD.id[i],t]
     }
+    #Average Recruitment Rate, WMD specific
+    mean.R[WMD.id[i]] ~ dunif(0.1,2)
   }
 }

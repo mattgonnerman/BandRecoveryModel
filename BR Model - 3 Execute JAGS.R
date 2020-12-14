@@ -93,10 +93,22 @@ parameters.null <- c('alpha_s',
 )
 
 
+N.A.init <- ceiling((1+totharv.A[1:28,])/.25)
+N.A.init[1:4,] <- NA
+
+N.J.init <- ceiling((1+totharv.J[1:28,])/.2)
+N.J.init[1:4,] <- NA
+
+mean.r.init <- c()
+mean.r.init[5:28] <- 1
+mean.r.init[1:4] <- NA
+
 #Initial values
 inits.null <- function(){
-  list(z = mr.init.z(EH_raw)
-       )
+  list(z = mr.init.z(EH_raw),
+       N.A = N.A.init,
+       N.J = N.J.init,
+       mean.R = mean.r.init)
 }
 
 #MCMC settings

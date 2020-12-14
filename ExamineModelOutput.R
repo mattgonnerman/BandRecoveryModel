@@ -14,5 +14,6 @@ population.long <- outputs %>%
 
 population.est <- population.long %>%
   pivot_wider(names_from = c(Age, Year), values_from = mean)
-colSums(population.est[2:ncol(population.est)])
+View(population.est)
+print(colSums(population.est[2:ncol(population.est)]))
 
