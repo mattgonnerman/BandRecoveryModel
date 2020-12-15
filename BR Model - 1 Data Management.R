@@ -558,8 +558,10 @@ allyearsharvest[is.na(allyearsharvest)] <- 0
 allyearharv.A <- as.matrix(allyearsharvest[,1:((ncol(allyearsharvest)-1)/2)])
 allyearharv.J <- as.matrix(allyearsharvest[,((ncol(allyearsharvest)+1)/2):(ncol(allyearsharvest)-1)])
 
-#Only want from 2014-2019
-totharv.A <- allyearharv.A[,(ncol(allyearharv.A)-5):ncol(allyearharv.A)]
+#Change years for SSPop here
+#-9 for 2010 to present
+#-5 for 2014 to present
+totharv.A <- allyearharv.A[,(ncol(allyearharv.A)-5):ncol(allyearharv.A)] 
 totharv.J <- allyearharv.J[,(ncol(allyearharv.J)-5):ncol(allyearharv.J)]
 
 

@@ -62,34 +62,26 @@ parameters.null <- c('alpha_s',
                      # 'w.tilde', 
                      # 'w.tilde.star',
                      'phi.spp', 
-                     'sigmasq',
-                     'tausq',
-                     'HR.A.2019.knot',
-                     'HR.J.2019.knot',
-                     'HR.A.2019.cap',
-                     'HR.J.2019.cap',
-                     'mean.WMD.HR.A',
+                     # 'HR.A.2019.knot',
+                     # 'HR.J.2019.knot',
+                     # 'HR.A.2019.cap',
+                     # 'HR.J.2019.cap',
+                     'mean.WMD.HR.A', #Mean WMD Harvest Rate
                      'mean.WMD.HR.J',
-                     'sigma.harv.A',
-                     'sigma.harv.J',
-                     'WSR_M_J_S2W', #Site Specific Survival, checking issue
+                     'WMD.HR.A', #WMD and Time Specific Harvest Rate
+                     'WMD.HR.J',
                      'S_M_J_W2S', #Period Specific Survival 
-                     # 'sigma.W2S.J',
                      'S_M_A_W2S', 
-                     # 'sigma.W2S.A',
                      'S_M_J_S2W', 
-                     # 'sigma.S2W.J',
                      'S_M_A_S2W', 
-                     # 'sigma.S2W.A',
                      'N.A', #SS Abundance
                      'N.J',
-                     'mean.R', #Recruitment Rate
-                     'sigma.R',
-                     'mean.AnnualS.J',#NonHarvest Survival in SS Abun
+                     'mean.R', #Mean WMD Specific Recruitment Rate
+                     'R', #WMD and Time Specific Recruitment Rate
+                     'mean.AnnualS.J',#Mean WMD NonHarvest Survival in SS Abun
                      'mean.AnnualS.A',
-                     'sigma.surv.J',
-                     'sigma.surv.A',
-                     'totalS.A'
+                     'totalS.A', #WMD and Time Specific NonHarvest Survival
+                     'totalS.J'
 )
 
 
@@ -100,7 +92,7 @@ N.J.init <- ceiling((1+totharv.J[1:28,])/.2)
 N.J.init[1:4,] <- NA
 
 mean.r.init <- c()
-mean.r.init[5:28] <- 1
+mean.r.init[5:28] <- .3
 mean.r.init[1:4] <- NA
 
 #Initial values
@@ -112,9 +104,9 @@ inits.null <- function(){
 }
 
 #MCMC settings
-ni <- 200 #number of iterations
+ni <- 20000 #number of iterations
 nt <- 8 #thinning
-nb <- 100 #burn in period
+nb <- 10000 #burn in period
 nc <- 3 #number of chains
 
 #Model for JAGS
