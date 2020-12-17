@@ -5,4 +5,4 @@ source(file = "BR Model - 1 Data Management.R")
 source(file = "BR Model - 3 Execute JAGS.R")
 
 #Return Estimated values
-source(file = "ExamineModelOutput.R")
+source(file = "BR Model - 4 Examine Model Output.R")
