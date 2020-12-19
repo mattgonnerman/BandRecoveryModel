@@ -130,9 +130,9 @@ inits.null <- function(){
 }
 
 #MCMC settings
-ni <- 30000 #number of iterations
+ni <- 50000 #number of iterations
 nt <- 8 #thinning
-nb <- 20000 #burn in period
+nb <- 40000 #burn in period
 nc <- 3 #number of chains
 
 #Model for JAGS
