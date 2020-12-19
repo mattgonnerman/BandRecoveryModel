@@ -85,40 +85,54 @@ parameters.null <- c('alpha_s',
 )
 
 
-#To use dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t]) need values for n.surv < N.A
-n.surv.A.init <- ceiling(((1+totharv.A[1:28,1:(ncol(totharv.A)-1)])/.25)*.01)
-# n.surv.A.init <- matrix(rep(1, 5*28), nrow = 28, ncol = 5)
-n.surv.A.init[1:4,] <- NA
-# n.surv.J.init <- ceiling(((1+totharv.J[1:28,1:(ncol(totharv.J)-1)])/.20)*.01)
-n.surv.J.init <- matrix(rep(1, 5*28), nrow = 28, ncol = 5)
-n.surv.J.init[1:4,] <- NA
 
-N.J.init <- ceiling((1+totharv.J[1:28,])/.2)
+N.J.init <- ceiling((10+totharv.J[1:28,])/.2)
 N.J.init[1:4,] <- NA
 
-N.A.init <- ceiling((1+totharv.A[1:28,])/.25)
-N.A.init[1:4,] <- NA
-N.A.init[,1] <- NA
 
+N.A.init <- ceiling((10+totharv.A[1:28,])/.25)
+N.A.init[1:4,] <- NA
+# N.A.init[,1] <- NA
+
+n.surv.A.init <- ceiling(N.A.init[,1:(ncol(N.A.init)-1)]*.4)
+n.surv.J.init <- ceiling(N.J.init[,1:(ncol(N.J.init)-1)]*.4)
+n.surv.A.init[1:4,] <- NA
+n.surv.J.init[1:4,] <- NA
+
+
+# For n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t])
+# Need to follow the below rules
+# n.surv.A.init[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
+# totharv.A[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
+for(i in 5:nrow(n.surv.A.init)){
+  for(j in 2:ncol(n.surv.A.init)){
+    if(n.surv.A.init[i,j] > (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])){
+      n.surv.A.init[i,j] <- ceiling((n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])*.5)
+    }
+  }
+}
 
 mean.r.init <- c()
 mean.r.init[5:28] <- .3
 mean.r.init[1:4] <- NA
 
+N.A.init.c1 <- N.A.init
+N.A.init.c1[,2:ncol(N.A.init)] <- NA
+
 #Initial values
 inits.null <- function(){
   list(z = mr.init.z(EH_raw),
-       # n.surv.A = n.surv.A.init,
-       # n.surv.J = n.surv.J.init,
+       n.surv.A = n.surv.A.init,
+       n.surv.J = n.surv.J.init,
        N.J = N.J.init,
-       N.A = N.A.init,
+       N.A = N.A.init.c1,
        mean.R = mean.r.init)
 }
 
 #MCMC settings
-ni <- 2000 #number of iterations
+ni <- 30000 #number of iterations
 nt <- 8 #thinning
-nb <- 1000 #burn in period
+nb <- 20000 #burn in period
 nc <- 3 #number of chains
 
 #Model for JAGS
