@@ -6,3 +6,10 @@ source(file = "BR Model - 3 Execute JAGS.R")
 
 #Return Estimated values
 source(file = "BR Model - 4 Examine Model Output.R")
+
+
+#Try no temporal variation in WMD specific HR
+
+#Try including 2020 data?
+
+#May need to reconsider the assumption of no non-harvest mortality during the hunting season.

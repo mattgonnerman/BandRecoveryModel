@@ -1,3 +1,7 @@
+#########################################################################################################
+#########################################################################################################
+### No Temporal Variation in Harvest Rates
+
 function(){##############################################################################################
   ### Weekly Survival Rate ###
   alpha_s ~ dbeta(1,1)
@@ -23,8 +27,6 @@ function(){#####################################################################
   alpha_hr ~ dbeta(1,1)
   intercept_hr <- logit(alpha_hr)
   beta_A_hr ~ dunif(0,1) #Effect of Age on band recovery (Juv reference)
-  beta_2019_hr ~ dunif(0,1) #Effect of Year on band recovery (2019 vs other) #This could probably be coded as a loop in the future to make it easier for IFW
-  beta_2020_hr ~ dunif(0,1) #Effect of Year on band recovery (2020 vs other)
   beta_spp ~ dnorm(0, 1)
 
   #Specify period specific survival/band recovery
@@ -35,8 +37,7 @@ function(){#####################################################################
         beta_A_s*br_age[j,t] + beta_S2W_s*br_s2w[j,t] + beta_wmd_s[br_wmd[j]]
       #Band Recovery Model
       logit(hr.br[j,t]) <- intercept_hr +
-        beta_A_hr*br_age[j,t] + beta_2019_hr*br_2019[j,t] + beta_2020_hr*br_2020[j,t] +
-        w.tilde[cap.site[j]] + e.cap[cap.site[j]]
+        beta_A_hr*br_age[j,t] + w.tilde[cap.site[j]] + e.cap[cap.site[j]]
 
       s[j,t] <- ifelse(t == f[j], pow(s.br[j,t], weeks2harv[j]),
                        ifelse(t == 1 || t == 3 || t == 5, pow(s.br[j,t], 11), pow(s.br[j,t], 36)))
@@ -101,14 +102,14 @@ function(){#####################################################################
   ### Derived Parameters ###
   #Capture Site specific harvest rates
   for(i in 1:N.cap){
-    logit(HR.A.2019.cap[i]) <- intercept_hr + beta_A_hr + beta_2019_hr + w.tilde[i] + e.cap[i]
-    logit(HR.J.2019.cap[i]) <- intercept_hr + beta_2019_hr + w.tilde[i] + e.cap[i]
+    logit(HR.A.2019.cap[i]) <- intercept_hr + beta_A_hr + w.tilde[i] + e.cap[i]
+    logit(HR.J.2019.cap[i]) <- intercept_hr + w.tilde[i] + e.cap[i]
   }
 
   #Knot specific harvest rates
   for(i in 1:N.knot){
-    logit(HR.A.2019.knot[i]) <- intercept_hr + beta_A_hr + beta_2019_hr + w.tilde.star[i]
-    logit(HR.J.2019.knot[i]) <- intercept_hr + beta_2019_hr + w.tilde.star[i]
+    logit(HR.A.2019.knot[i]) <- intercept_hr + beta_A_hr + w.tilde.star[i]
+    logit(HR.J.2019.knot[i]) <- intercept_hr + w.tilde.star[i]
   }
 
   ### WMD Specific Harvest Rates
@@ -160,19 +161,19 @@ function(){#####################################################################
   for(i in 1:N.wmd){
     for(t in 1:n.years){
       # Total harvest Observation #No Temporal Variation in HR
-      # th.A[WMD.id[i],t] ~ dbin(mean.WMD.HR.A[WMD.id[i]], N.A[WMD.id[i],t]) #No Temporal Variation in HR
-      # th.J[WMD.id[i],t] ~ dbin(mean.WMD.HR.J[WMD.id[i]], N.J[WMD.id[i],t]) #No Temporal Variation in HR
+      th.A[WMD.id[i],t] ~ dbin(mean.WMD.HR.A[WMD.id[i]], N.A[WMD.id[i],t]) #No Temporal Variation in HR
+      th.J[WMD.id[i],t] ~ dbin(mean.WMD.HR.J[WMD.id[i]], N.J[WMD.id[i],t]) #No Temporal Variation in HR
 
       #Total harvest Observation #Temporal Variation in HR
-      th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Temporal Variation in HR
-      th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Temporal Variation in HR
+      # th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Temporal Variation in HR
+      # th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Temporal Variation in HR
 
       #Annual Variation in Harvest Rate #Temporal Variation in HR
-      l.WMD.HR.A[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A) #Temporal Variation in HR
-      l.WMD.HR.J[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.J[WMD.id[i]]), tau.harv.J) #Temporal Variation in HR
-
-      logit(WMD.HR.A[WMD.id[i],t]) <- l.WMD.HR.A[WMD.id[i],t] #Temporal Variation in HR
-      logit(WMD.HR.J[WMD.id[i],t]) <- l.WMD.HR.J[WMD.id[i],t] #Temporal Variation in HR
+      # l.WMD.HR.A[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A) #Temporal Variation in HR
+      # l.WMD.HR.J[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.J[WMD.id[i]]), tau.harv.J) #Temporal Variation in HR
+      #
+      # logit(WMD.HR.A[WMD.id[i],t]) <- l.WMD.HR.A[WMD.id[i],t] #Temporal Variation in HR
+      # logit(WMD.HR.J[WMD.id[i],t]) <- l.WMD.HR.J[WMD.id[i],t] #Temporal Variation in HR
 
       #Temporal Variation in probability of surviving non harvest risk in a year #Temporal Variation in S
       logit(AnnualS.A[WMD.id[i],t]) <- l.AnnualS.A[WMD.id[i],t] #Temporal Variation in S
@@ -182,11 +183,11 @@ function(){#####################################################################
       l.AnnualS.J[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.J), tau.surv.J) #Temporal Variation in S
 
       # Total Annual Survival Probability #Temporal Variation in S and HR
-      totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-WMD.HR.A[WMD.id[i],t]) #Temporal Variation in S and HR
-      totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-WMD.HR.J[WMD.id[i],t]) #Temporal Variation in S and HR
+      # totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-WMD.HR.A[WMD.id[i],t]) #Temporal Variation in S and HR
+      # totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-WMD.HR.J[WMD.id[i],t]) #Temporal Variation in S and HR
       # Total Annual Survival Probability #No Temporal Variation in HR
-      # totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR
-      # totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR
+      totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR
+      totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-mean.WMD.HR.J[WMD.id[i]]) #No Temporal Variation in HR
     }
     # totalS.A[WMD.id[i]] <- mean.AnnualS.A*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR or S
     # totalS.J[WMD.id[i]] <- mean.AnnualS.J*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR or S
@@ -194,13 +195,16 @@ function(){#####################################################################
     #Need to specify N[t=1], needs to be a whole number.
     #th.year1 are just the harvest totals from year 1
     #This assumes there is at least 10 turkeys in each WMD at the first timestep
-      N.A[WMD.id[i],1] ~ dpois((round(((10+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1])))) #Temporal Variation in HR
-      N.J[WMD.id[i],1] ~ dpois((round(((10+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1])))) #Temporal Variation in HR
-      # #N.A[WMD.id[i],1] ~ dpois((round(((10+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]])))) #No Temporal Variation in HR
-      # #N.J[WMD.id[i],1] ~ dpois((round(((10+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])))) #No Temporal Variation in HR
+    # N.A[WMD.id[i],1] ~ dpois((round(((10+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1])))) #Temporal Variation in HR
+    # N.J[WMD.id[i],1] ~ dpois((round(((10+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1])))) #Temporal Variation in HR
+    N.A[WMD.id[i],1] ~ dpois((round(((10+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]])))) #No Temporal Variation in HR
+    N.J[WMD.id[i],1] ~ dpois((round(((10+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])))) #No Temporal Variation in HR
 
     for(t in 1:(n.years-1)){
       # Number of birds to A to surive OR J that transition into A from t to t+1
+      # N.A[WMD.id[i],t+1] <- n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t] #Requires Specific Starting Parameters
+      # n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Requires Specific Starting Parameters
+      # n.surv.J[WMD.id[i],t] ~ dbin(totalS.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Requires Specific Starting Parameters
       N.A[WMD.id[i],t+1] <- n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t] #Requires Specific Starting Parameters
       n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Requires Specific Starting Parameters
       n.surv.J[WMD.id[i],t] ~ dbin(totalS.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Requires Specific Starting Parameters

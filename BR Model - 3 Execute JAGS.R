@@ -86,11 +86,11 @@ parameters.null <- c('alpha_s',
 
 
 
-N.J.init <- ceiling((10+totharv.J[1:28,])/.2)
+N.J.init <- ceiling((20+totharv.J[1:28,])/.2)
 N.J.init[1:4,] <- NA
 
 
-N.A.init <- ceiling((10+totharv.A[1:28,])/.25)
+N.A.init <- ceiling((20+totharv.A[1:28,])/.25)
 N.A.init[1:4,] <- NA
 # N.A.init[,1] <- NA
 
@@ -111,6 +111,20 @@ for(i in 5:nrow(n.surv.A.init)){
     }
   }
 }
+
+check.df <- totharv.A[1:28,]
+for(i in 5:nrow(n.surv.A.init)){
+  for(j in 2:ncol(n.surv.A.init)){
+    if(totharv.A[i,j] > (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])){
+      # n.surv.A.init[i,j] <- ceiling((n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])*.5)
+      check.df[i,j] <- 1
+    }else{
+      check.df[i,j] <- 0
+    }
+  }
+}
+check.df[1:4,] <- NA
+check.df[,ncol(n.surv.A.init)] <- NA
 
 mean.r.init <- c()
 mean.r.init[5:28] <- .3
