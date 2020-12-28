@@ -2,7 +2,8 @@
 source(file = "BR Model - 1 Data Management.R")
 
 #Run Current Model in JAGS and save output to CSV
-source(file = "BR Model - 3 Execute JAGS.R")
+# source(file = "BR Model - 3 Execute JAGS.R")
+source(file = "BR Model - 3c Execute JAGS.R") #Testing Options for dealing with underestimation of HR by 
 
 #Return Estimated values
 source(file = "BR Model - 4 Examine Model Output.R")
