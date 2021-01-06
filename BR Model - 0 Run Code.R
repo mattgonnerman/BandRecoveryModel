@@ -1,16 +1,25 @@
 #Run Data Managment and prepare inputs for JAGS
 source(file = "BR Model - 1 Data Management.R")
 
+# #MCMC settings
+ni <- 10^5 #number of iterations
+nt <- 8 #thinning
+nb <- 10^4 #burn in period
+nc <- 3 #number of chains
+
 #Run Current Model in JAGS and save output to CSV
-# source(file = "BR Model - 3 Execute JAGS.R")
-source(file = "BR Model - 3c Execute JAGS.R") #Testing Options for dealing with underestimation of HR by 
+# source(file = "BR Model - 3 Execute JAGS.R") # Original, Do NOT Change
+# source(file = "BR Model - 3b Execute JAGS.R") # No Temporal Variation in HR
+
+### This is the current model I am favoring. Still have the initial drop in HR from year 1 to 2 no matter the input data
+### also still underestimating harvest rates compared to the nonState Space model.
+source(file = "BR Model - 3c Execute JAGS.R") # Temporal Variation in HR within SS but not within BR (no covariates for year when estimating HR)
+# source(file = "BR Model - 3z Execute JAGS.R") # Master Script for testing various options for dealing with underestimation of HR
 
 #Return Estimated values
 source(file = "BR Model - 4 Examine Model Output.R")
 
 
-#Try no temporal variation in WMD specific HR
-
-#Try including 2020 data?
-
 #May need to reconsider the assumption of no non-harvest mortality during the hunting season.
+
+#Is N.J[t+1] ~ dpois(R*N.A[t]) most appropriate?

@@ -155,9 +155,16 @@ function(){#####################################################################
   
   for(i in 1:N.wmd){
     for(t in 1:n.years){
-      # Total harvest Observation #No Temporal Variation in HR
-      th.A[WMD.id[i],t] ~ dbin(mean.WMD.HR.A[WMD.id[i]], N.A[WMD.id[i],t]) #No Temporal Variation in HR
-      th.J[WMD.id[i],t] ~ dbin(mean.WMD.HR.J[WMD.id[i]], N.J[WMD.id[i],t]) #No Temporal Variation in HR
+      #Total harvest Observation #Temporal Variation in HR
+      th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Temporal Variation in HR
+      th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Temporal Variation in HR
+      
+      #Annual Variation in Harvest Rate #Temporal Variation in HR
+      l.WMD.HR.A[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A) #Temporal Variation in HR
+      l.WMD.HR.J[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.J[WMD.id[i]]), tau.harv.J) #Temporal Variation in HR
+
+      logit(WMD.HR.A[WMD.id[i],t]) <- l.WMD.HR.A[WMD.id[i],t] #Temporal Variation in HR
+      logit(WMD.HR.J[WMD.id[i],t]) <- l.WMD.HR.J[WMD.id[i],t] #Temporal Variation in HR
       
       #Temporal Variation in probability of surviving non harvest risk in a year #Temporal Variation in S
       logit(AnnualS.A[WMD.id[i],t]) <- l.AnnualS.A[WMD.id[i],t] #Temporal Variation in S
@@ -166,26 +173,27 @@ function(){#####################################################################
       l.AnnualS.A[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.A), tau.surv.A) #Temporal Variation in S
       l.AnnualS.J[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.J), tau.surv.J) #Temporal Variation in S
       
-      # Total Annual Survival Probability #No Temporal Variation in HR
-      totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR
-      totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-mean.WMD.HR.J[WMD.id[i]]) #No Temporal Variation in HR
+      # Total Annual Survival Probability #Temporal Variation in S and HR
+      totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-WMD.HR.A[WMD.id[i],t]) #Temporal Variation in S and HR
+      totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-WMD.HR.J[WMD.id[i],t]) #Temporal Variation in S and HR
     }
-    
+
     #Need to specify N[t=1], needs to be a whole number.
     #th.year1 are just the harvest totals from year 1
     #This assumes there is at least 10 turkeys in each WMD at the first timestep
-    N.A[WMD.id[i],1] <- round(((10+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]])) #No Temporal Variation in HR
-    N.J[WMD.id[i],1] <- round(((10+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])) #No Temporal Variation in HR
-    # #N.A[WMD.id[i],1] ~ dpois((round(((10+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]])))) #No Temporal Variation in HR
-    # #N.J[WMD.id[i],1] ~ dpois((round(((10+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])))) #No Temporal Variation in HR
+    N.A[WMD.id[i],1] <- round(((10+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1])) #Temporal Variation in HR
+    N.J[WMD.id[i],1] <- round(((10+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1])) #Temporal Variation in HR
+    # N.A[WMD.id[i],1] ~ dpois((round(((10+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1])))) #Temporal Variation in HR
+    # N.J[WMD.id[i],1] ~ dpois((round(((10+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1])))) #Temporal Variation in HR
     
     for(t in 1:(n.years-1)){
       # Number of birds to A to surive OR J that transition into A from t to t+1
       N.A[WMD.id[i],t+1] <- n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t] #Requires Specific Starting Parameters
       n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Requires Specific Starting Parameters
       n.surv.J[WMD.id[i],t] ~ dbin(totalS.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Requires Specific Starting Parameters
-      # n.surv.A[WMD.id[i],t] <- totalS.A[WMD.id[i]] * N.A[WMD.id[i],t] #No Temporal Variation in HR or S
-      # n.surv.J[WMD.id[i],t] <- totalS.J[WMD.id[i]] * N.J[WMD.id[i],t] #No Temporal Variation in HR or S
+      # N.A[WMD.id[i],t+1] ~ dpois(n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t]) #Temporal Variation in HR or S
+      # n.surv.A[WMD.id[i],t] <- totalS.A[WMD.id[i],t] * N.A[WMD.id[i],t] #Temporal Variation in HR or S
+      # n.surv.J[WMD.id[i],t] <- totalS.J[WMD.id[i],t] * N.J[WMD.id[i],t] #Temporal Variation in HR or S
       # N.A[WMD.id[i],t+1] <- round(1+(totalS.A[WMD.id[i],t] * N.A[WMD.id[i],t]) + (totalS.J[WMD.id[i],t] * N.J[WMD.id[i],t])) #Issues initializing
       
       #Number of Birds recruited to the Juvenile population in t

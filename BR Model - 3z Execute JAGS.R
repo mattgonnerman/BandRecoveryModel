@@ -145,14 +145,14 @@ inits.null <- function(){
        mean.R = mean.r.init)
 }
 
-# #MCMC settings
-# ni <- 5000 #number of iterations
-# nt <- 8 #thinning
-# nb <- 3000 #burn in period
-# nc <- 3 #number of chains
+#MCMC settings
+ni <- 5000 #number of iterations
+nt <- 8 #thinning
+nb <- 3000 #burn in period
+nc <- 3 #number of chains
 
 #Model for JAGS
-br_w_as_model <- source(file = "BR Model - 2c JAGS Model Code - Temporal Variation in SS HR_Not in BR.R")$value
+br_w_as_model <- source(file = "BR Model - 2z JAGS Model Code.R")$value
 
 
 ### Run Model ###

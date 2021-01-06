@@ -25,8 +25,8 @@ dat <- list( succ = succ, #Adult Survival
              n.occasions = dim(EH_raw)[2], #Band Recovery 
              z = known.state.mr(EH_raw), #Band Recovery
              br_age = br_age, #Band Recovery
-             br_2019 = br_2019, #Band Recovery
-             br_2020 = br_2020, #Band Recovery
+             # br_2019 = br_2019, #Band Recovery
+             # br_2020 = br_2020, #Band Recovery
              br_s2w = br_s2w, #Band Recovery
              br_wmd = br_wmd,
              th.A = totharv.A, #Total Adult Harvest by WMD '14-'19
@@ -57,8 +57,8 @@ parameters.null <- c('alpha_s',
                      'beta_wmd_s', #Non-Harvest Survival Beta - WMD specific
                      'intercept_hr', #Harvest Rate Intercept
                      'beta_A_hr', #Harvest Rate Betas - Adult
-                     'beta_2019_hr', #Harvest Rate Betas - 2019
-                     'beta_2020_hr', #Harvest Rate Betas - 2020
+                     # 'beta_2019_hr', #Harvest Rate Betas - 2019
+                     # 'beta_2020_hr', #Harvest Rate Betas - 2020
                      # 'w.tilde', 
                      # 'w.tilde.star',
                      'phi.spp', 
@@ -68,8 +68,8 @@ parameters.null <- c('alpha_s',
                      # 'HR.J.2019.cap',
                      'mean.WMD.HR.A', #Mean WMD Harvest Rate
                      'mean.WMD.HR.J',
-                     'WMD.HR.A', #WMD and Time Specific Harvest Rate
-                     'WMD.HR.J',
+                     # 'WMD.HR.A', #WMD and Time Specific Harvest Rate
+                     # 'WMD.HR.J',
                      'S_M_J_W2S', #Period Specific Survival 
                      'S_M_A_W2S', 
                      'S_M_J_S2W', 
@@ -119,9 +119,9 @@ for(i in 5:nrow(n.surv.A.init)){
     
     for(j in 2:ncol(totharv.A)){
       if(totharv.A[i,j] > n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1]) {
-      x <- totharv.A[i,j] - n.surv.A.init[i,j-1] - n.surv.J.init[i,j-1]
-      n.surv.A.init[i,j-1] <- n.surv.A.init[i,j-1] + ceiling(x/2)
-      n.surv.J.init[i,j-1] <- n.surv.J.init[i,j-1] + ceiling(x/2)
+        x <- totharv.A[i,j] - n.surv.A.init[i,j-1] - n.surv.J.init[i,j-1]
+        n.surv.A.init[i,j-1] <- n.surv.A.init[i,j-1] + ceiling(x/2)
+        n.surv.J.init[i,j-1] <- n.surv.J.init[i,j-1] + ceiling(x/2)
       }
     }
   }
@@ -145,14 +145,14 @@ inits.null <- function(){
        mean.R = mean.r.init)
 }
 
-# #MCMC settings
-# ni <- 5000 #number of iterations
-# nt <- 8 #thinning
-# nb <- 3000 #burn in period
-# nc <- 3 #number of chains
+#MCMC settings
+ni <- 5000 #number of iterations
+nt <- 8 #thinning
+nb <- 3000 #burn in period
+nc <- 3 #number of chains
 
 #Model for JAGS
-br_w_as_model <- source(file = "BR Model - 2c JAGS Model Code - Temporal Variation in SS HR_Not in BR.R")$value
+br_w_as_model <- source(file = "BR Model - 2b JAGS Model Code - No Temporal Variation in HR.R")$value
 
 
 ### Run Model ###

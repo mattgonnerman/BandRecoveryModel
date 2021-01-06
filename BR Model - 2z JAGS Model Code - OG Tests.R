@@ -141,8 +141,6 @@ function(){#####################################################################
   tau.obs.J <- pow(sigma.obs.J, -2)
   sigma.obs.J ~ dunif(0,100)
   
-  
-  
   #Survival Annual Process Error
   tau.surv.A <- pow(sigma.surv.A, -2)
   sigma.surv.A ~ dunif(0,1)
@@ -158,19 +156,19 @@ function(){#####################################################################
   for(i in 1:N.wmd){
     for(t in 1:n.years){
       # Total harvest Observation #No Temporal Variation in HR
-      # th.A[WMD.id[i],t] ~ dbin(mean.WMD.HR.A[WMD.id[i]], N.A[WMD.id[i],t]) #No Temporal Variation in HR
-      # th.J[WMD.id[i],t] ~ dbin(mean.WMD.HR.J[WMD.id[i]], N.J[WMD.id[i],t]) #No Temporal Variation in HR
+      th.A[WMD.id[i],t] ~ dbin(mean.WMD.HR.A[WMD.id[i]], N.A[WMD.id[i],t]) #No Temporal Variation in HR
+      th.J[WMD.id[i],t] ~ dbin(mean.WMD.HR.J[WMD.id[i]], N.J[WMD.id[i],t]) #No Temporal Variation in HR
       
       #Total harvest Observation #Temporal Variation in HR
-      th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Temporal Variation in HR
-      th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Temporal Variation in HR
+      # th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Temporal Variation in HR
+      # th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Temporal Variation in HR
       
       #Annual Variation in Harvest Rate #Temporal Variation in HR
-      l.WMD.HR.A[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A) #Temporal Variation in HR
-      l.WMD.HR.J[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.J[WMD.id[i]]), tau.harv.J) #Temporal Variation in HR
-      
-      logit(WMD.HR.A[WMD.id[i],t]) <- l.WMD.HR.A[WMD.id[i],t] #Temporal Variation in HR
-      logit(WMD.HR.J[WMD.id[i],t]) <- l.WMD.HR.J[WMD.id[i],t] #Temporal Variation in HR
+      # l.WMD.HR.A[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A) #Temporal Variation in HR
+      # l.WMD.HR.J[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.J[WMD.id[i]]), tau.harv.J) #Temporal Variation in HR
+      # 
+      # logit(WMD.HR.A[WMD.id[i],t]) <- l.WMD.HR.A[WMD.id[i],t] #Temporal Variation in HR
+      # logit(WMD.HR.J[WMD.id[i],t]) <- l.WMD.HR.J[WMD.id[i],t] #Temporal Variation in HR
       
       #Temporal Variation in probability of surviving non harvest risk in a year #Temporal Variation in S
       logit(AnnualS.A[WMD.id[i],t]) <- l.AnnualS.A[WMD.id[i],t] #Temporal Variation in S
@@ -180,20 +178,24 @@ function(){#####################################################################
       l.AnnualS.J[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.J), tau.surv.J) #Temporal Variation in S
       
       # Total Annual Survival Probability #Temporal Variation in S and HR
-      totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-WMD.HR.A[WMD.id[i],t]) #Temporal Variation in S and HR
-      totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-WMD.HR.J[WMD.id[i],t]) #Temporal Variation in S and HR
+      # totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-WMD.HR.A[WMD.id[i],t]) #Temporal Variation in S and HR
+      # totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-WMD.HR.J[WMD.id[i],t]) #Temporal Variation in S and HR
       # Total Annual Survival Probability #No Temporal Variation in HR
-      # totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR
-      # totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR
+      totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR
+      totalS.J[WMD.id[i],t] <- AnnualS.J[WMD.id[i],t]*(1-mean.WMD.HR.J[WMD.id[i]]) #No Temporal Variation in HR
     }
     # totalS.A[WMD.id[i]] <- mean.AnnualS.A*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR or S
-    # totalS.J[WMD.id[i]] <- mean.AnnualS.J*(1-mean.WMD.HR.A[WMD.id[i]]) #No Temporal Variation in HR or S
+    # totalS.J[WMD.id[i]] <- mean.AnnualS.J*(1-mean.WMD.HR.J[WMD.id[i]]) #No Temporal Variation in HR or S
     
     #Need to specify N[t=1], needs to be a whole number.
     #th.year1 are just the harvest totals from year 1
     #This assumes there is at least 10 turkeys in each WMD at the first timestep
-    N.A[WMD.id[i],1] <- round(((10+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1])) #Temporal Variation in HR
-    N.J[WMD.id[i],1] <- round(((10+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1])) #Temporal Variation in HR
+    # N.A[WMD.id[i],1] <- round(((10+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1])) #Temporal Variation in HR
+    # N.J[WMD.id[i],1] <- round(((10+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1])) #Temporal Variation in HR
+    N.A[WMD.id[i],1] <- round(((10+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]])) #No Temporal Variation in HR
+    N.J[WMD.id[i],1] <- round(((10+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])) #No Temporal Variation in HR
+    
+    
     # N.A[WMD.id[i],1] ~ dpois((round(((10+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1])))) #Temporal Variation in HR
     # N.J[WMD.id[i],1] ~ dpois((round(((10+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1])))) #Temporal Variation in HR
     # #N.A[WMD.id[i],1] ~ dpois((round(((10+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]])))) #No Temporal Variation in HR
@@ -213,7 +215,8 @@ function(){#####################################################################
       
       #Number of Birds recruited to the Juvenile population in t
       N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
-      meanY1[WMD.id[i],t] <- 10 + (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #This was 11 when it ran well
+      # meanY1[WMD.id[i],t] <- 10 + (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #This was 11 when it ran well
+      meanY1[WMD.id[i],t] <- (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #This was 11 when it ran well
       
       #Year Specific recruitment rate
       R[WMD.id[i],t] ~ dlnorm(log(mean.R[WMD.id[i]]), tau.R)
