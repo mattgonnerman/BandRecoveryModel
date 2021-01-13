@@ -133,15 +133,12 @@ for(i in 5:nrow(n.surv.A.init)){
 }
 
 mean.r.init <- c()
-mean.r.init[5:28] <- 2
+mean.r.init[5:28] <- .3
 mean.r.init[1:4] <- NA
 
 N.A.init.c1 <- N.A.init
 N.A.init.c1[,2:ncol(N.A.init)] <- NA
 N.J.init[,1] <- NA
-
-R.x <- matrix(2.7, ncol = ncol(N.A.init)-1, nrow = nrow(N.A.init))
-R.x[1:4,] <- NA
 
 #Initial values
 inits.null <- function(){
@@ -150,8 +147,7 @@ inits.null <- function(){
        n.surv.J = n.surv.J.init,
        N.J = N.J.init,
        # N.A = N.A.init.c1,
-       mean.R = mean.r.init,
-       R.x = R.x)
+       mean.R = mean.r.init)
 }
 
 # #MCMC settings
@@ -161,7 +157,7 @@ inits.null <- function(){
 # nc <- 3 #number of chains
 
 #Model for JAGS
-br_w_as_model <- source(file = "BR Model - 2c JAGS Model Code - Temporal Variation in SS HR_Not in BR.R")$value
+br_w_as_model <- source(file = "BR Model - 2e JAGS Model Code - 2c but changing N calculations.R")$value
 
 
 ### Run Model ###

@@ -136,7 +136,10 @@ function(){#####################################################################
   S_M_J_W2S <- pow(mean(WSR_M_J_W2S[sampledwmd]), 11)
   S_M_A_W2S <- pow(mean(WSR_M_A_W2S[sampledwmd]), 11)
   
-  #Average Non Harvest Survival
+  #Survival Parameters for State Space
+  S.J.H2T <- pow(mean(WSR_M_J_S2W[sampledwmd]), 12) #Survival from Hatch to 
+  S.J.T2HS <- pow(mean(WSR_M_J_W2S[sampledwmd]), 11)
+  S.J.rec <- S.J.H2T * S.J.T2HS
   mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W
   mean.AnnualS.J <- S_M_J_W2S * S_M_J_S2W
   
@@ -144,15 +147,15 @@ function(){#####################################################################
   ### State-Space Abundance ###
   #Survival Annual Process Error 
   tau.surv.A <- pow(sigma.surv.A, -2) #for Logit-Normal distribution
-  sigma.surv.A ~ dunif(0,.2) #for Logit-Normal distribution
+  sigma.surv.A ~ dunif(0,.05) #for Logit-Normal distribution
   tau.surv.J <- pow(sigma.surv.J, -2) #for Logit-Normal distribution
-  sigma.surv.J ~ dunif(0,.2) #for Logit-Normal distribution
+  sigma.surv.J ~ dunif(0,.05) #for Logit-Normal distribution
   
   #Harvest Rate Annual Process Error
   tau.harv.A <- pow(sigma.harv.A, -2) #for Logit-Normal distribution
-  sigma.harv.A ~ dunif(0,.04) #for Logit-Normal distribution
+  sigma.harv.A ~ dunif(0,.025) #for Logit-Normal distribution
   tau.harv.J <- pow(sigma.harv.J, -2) #for Logit-Normal distribution
-  sigma.harv.J ~ dunif(0,.04) #for Logit-Normal distribution
+  sigma.harv.J ~ dunif(0,.025) #for Logit-Normal distribution
   
   for(i in 1:N.wmd){
     for(t in 1:n.years){
@@ -170,9 +173,11 @@ function(){#####################################################################
       # #Temporal Variation in probability of surviving non harvest risk in a year #Temporal Variation in S
       logit(AnnualS.A[WMD.id[i],t]) <- l.AnnualS.A[WMD.id[i],t] #Temporal Variation in S
       logit(AnnualS.J[WMD.id[i],t]) <- l.AnnualS.J[WMD.id[i],t] #Temporal Variation in S
-
-      l.AnnualS.A[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.A), tau.surv.A) #Temporal Variation in S
-      l.AnnualS.J[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.J), tau.surv.J) #Temporal Variation in S
+      logit(AnnualS.J.rec[WMD.id[i],t]) <- l.AnnualS.J.rec[WMD.id[i],t] #Temporal Variation in S
+      
+      l.AnnualS.A[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.A), tau.surv.A) #Temporal Variation in Adult S for N.A[t+1]
+      l.AnnualS.J[WMD.id[i],t] ~ dnorm(logit(mean.AnnualS.J), tau.surv.J) #Temporal Variation in Juv S for N.A[t+1]
+      l.AnnualS.J.rec[WMD.id[i],t] ~ dnorm(logit(S.J.rec), tau.surv.A) #Temporal Variation in Juv S for recruitment
       
       # Total Annual Survival Probability #Temporal Variation in S and HR
       totalS.A[WMD.id[i],t] <- AnnualS.A[WMD.id[i],t]*(1-WMD.HR.A[WMD.id[i],t]) #Temporal Variation in S and HR
@@ -199,22 +204,15 @@ function(){#####################################################################
       
       #Number of Birds recruited to the Juvenile population in t
       N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
-      meanY1[WMD.id[i],t] <- 10 + (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #This was 11 when it ran well
-      # meanY1[WMD.id[i],t] <- (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #
-      # meanY1[WMD.id[i],t] <- (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #
+      meanY1[WMD.id[i],t] <- S.J.SS * (R[WMD.id[i],t] * N.A[WMD.id[i],t])
       
       #Year Specific recruitment rate
-      # R[WMD.id[i],t] ~ dlnorm(log(mean.R[WMD.id[i]]), tau.R)
-      # R[WMD.id[i],t] ~ dlnorm(mean.R[WMD.id[i]], tau.R)
-      # R[WMD.id[i],t] <- log(R.x[WMD.id[i],t])
-      # R.x[WMD.id[i],t] ~ dnorm(mean.R[WMD.id[i]], tau.R[WMD.id[i]])
-      R[WMD.id[i],t] ~ dunif(0.01, 3)
+      R[WMD.id[i],t] ~ dlnorm(log(mean.R[WMD.id[i]]), tau.R)
     }
     #Average Recruitment Rate, WMD specific
-    # mean.R[WMD.id[i]] ~ dunif(1,10^5)
-    # tau.R[WMD.id[i]] <- pow(sigma.R[WMD.id[i]], -2)
-    # sigma.R[WMD.id[i]] ~ dunif(0,1000)
+    mean.R[WMD.id[i]] ~ dunif(0.1,2)
   }
   #Recruitment Process Error
-  
+  tau.R <- pow(sigma.R, -2)
+  sigma.R ~ dunif(0,1)
 }

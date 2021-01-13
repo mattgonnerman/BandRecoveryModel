@@ -57,8 +57,6 @@ parameters.null <- c('alpha_s',
                      'beta_wmd_s', #Non-Harvest Survival Beta - WMD specific
                      'intercept_hr', #Harvest Rate Intercept
                      'beta_A_hr', #Harvest Rate Betas - Adult
-                     # 'beta_2019_hr', #Harvest Rate Betas - 2019
-                     # 'beta_2020_hr', #Harvest Rate Betas - 2020
                      # 'w.tilde', 
                      # 'w.tilde.star',
                      'phi.spp', 
@@ -68,6 +66,8 @@ parameters.null <- c('alpha_s',
                      # 'HR.J.2019.cap',
                      'mean.WMD.HR.A', #Mean WMD Harvest Rate
                      'mean.WMD.HR.J',
+                     'sigma.harv.A',
+                     'sigma.harv.J',
                      'WMD.HR.A', #WMD and Time Specific Harvest Rate
                      'WMD.HR.J',
                      'S_M_J_W2S', #Period Specific Survival 
@@ -76,26 +76,19 @@ parameters.null <- c('alpha_s',
                      'S_M_A_S2W', 
                      'N.A', #SS Abundance
                      'N.J',
-                     'mean.R', #Mean WMD Specific Recruitment Rate
-                     'R', #WMD and Time Specific Recruitment Rate
-                     'mean.AnnualS.J',#Mean WMD NonHarvest Survival in SS Abun
-                     'mean.AnnualS.A',
-                     'totalS.A', #WMD and Time Specific NonHarvest Survival
-                     'totalS.J',
-                     'sigma.harv.A',
-                     'sigma.harv.J',
-                     'sigma.surv.A',
-                     'sigma.surv.J',
-                     'sigma.R'
+                     'r.mean',
+                     'r',
+                     'sigma.rmean',
+                     'sigma.r'
 )
 
 
 
-N.J.init <- ceiling((10+totharv.J[1:28,])/.2)
+N.J.init <- ceiling((1+totharv.J[1:28,])/.14)
 N.J.init[1:4,] <- NA
 
 
-N.A.init <- ceiling((10+totharv.A[1:28,])/.25)
+N.A.init <- ceiling((1+totharv.A[1:28,])/.25)
 N.A.init[1:4,] <- NA
 # N.A.init[,1] <- NA
 
@@ -133,25 +126,22 @@ for(i in 5:nrow(n.surv.A.init)){
 }
 
 mean.r.init <- c()
-mean.r.init[5:28] <- 2
+mean.r.init[5:28] <- .3
 mean.r.init[1:4] <- NA
 
 N.A.init.c1 <- N.A.init
 N.A.init.c1[,2:ncol(N.A.init)] <- NA
-N.J.init[,1] <- NA
-
-R.x <- matrix(2.7, ncol = ncol(N.A.init)-1, nrow = nrow(N.A.init))
-R.x[1:4,] <- NA
+# N.J.init[,1] <- NA
 
 #Initial values
 inits.null <- function(){
   list(z = mr.init.z(EH_raw),
-       n.surv.A = n.surv.A.init,
-       n.surv.J = n.surv.J.init,
+       # n.surv.A = n.surv.A.init,
+       # n.surv.J = n.surv.J.init,
        N.J = N.J.init,
-       # N.A = N.A.init.c1,
-       mean.R = mean.r.init,
-       R.x = R.x)
+       N.A = N.A.init
+       # mean.R = mean.r.init
+       )
 }
 
 # #MCMC settings
@@ -161,7 +151,7 @@ inits.null <- function(){
 # nc <- 3 #number of chains
 
 #Model for JAGS
-br_w_as_model <- source(file = "BR Model - 2c JAGS Model Code - Temporal Variation in SS HR_Not in BR.R")$value
+br_w_as_model <- source(file = "BR Model - 2d JAGS Model Code - Simplified State Space.R")$value
 
 
 ### Run Model ###
