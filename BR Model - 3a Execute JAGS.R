@@ -1,3 +1,6 @@
+
+require(R2jags)
+
 ###################################################################################################################
 ###################################################################################################################
 ###################################################################################################################
@@ -13,7 +16,6 @@
 dat <- list( succ = succ, #Adult Survival
              interval = interval, #Adult Survival
              nvisit = length(succ), #Adult Survival
-             id = ID, #Adult Survival
              wsr_sex = wsr_sex, #Adult Survival
              wsr_age = wsr_age, #Adult Survival
              wsr_time = wsr_time, #Adult Survival
@@ -25,15 +27,10 @@ dat <- list( succ = succ, #Adult Survival
              n.occasions = dim(EH_raw)[2], #Band Recovery 
              z = known.state.mr(EH_raw), #Band Recovery
              br_age = br_age, #Band Recovery
-             # br_2019 = br_2019, #Band Recovery
-             # br_2020 = br_2020, #Band Recovery
+             br_2019 = br_2019, #Band Recovery
+             br_2020 = br_2020, #Band Recovery
              br_s2w = br_s2w, #Band Recovery
              br_wmd = br_wmd,
-             th.A = totharv.A, #Total Adult Harvest by WMD '14-'19
-             th.J = totharv.J, #Total Juvenile Harvest by WMD '14-'19 
-             th.year1.A = as.integer(totharv.A[,1]), #Total Adult Harvest by WMD '14-'19
-             th.year1.J = as.integer(totharv.J[,1]), #Total Juvenile Harvest by WMD '14-'19
-             n.years = ncol(totharv.A),
              sampledwmd = sampledwmd, #list of wmd's where we sampled
              cap.site = ind.cap.site, #each individuals capture site as a numeric
              d.s.star=KnotLocalDis.mat/1000, #distance between spatial knots and cap sites
@@ -47,9 +44,7 @@ dat <- list( succ = succ, #Adult Survival
 ) #for Harvest rate estimates
 
 #Parameters monitors
-parameters.null <- c('alpha_s', 
-                     'alpha_hr', 
-                     'intercept_s', #Non-Harvest Survival Intercept 
+parameters.null <- c('intercept_s', #Non-Harvest Survival Intercept 
                      'beta_F_s', #Non-Harvest Survival Beta - Female
                      'beta_A_s', #Non-Harvest Survival Beta - Adult
                      'beta_A_F_s', #Non-Harvest Survival Beta - F*A Interaction
@@ -57,81 +52,39 @@ parameters.null <- c('alpha_s',
                      'beta_wmd_s', #Non-Harvest Survival Beta - WMD specific
                      'intercept_hr', #Harvest Rate Intercept
                      'beta_A_hr', #Harvest Rate Betas - Adult
-                     # 'w.tilde', 
+                     'beta_2019_hr',
+                     'beta_2020_hr',
+                     # 'w.tilde',
                      # 'w.tilde.star',
-                     'phi.spp', 
+                     # 'phi.spp', 
                      # 'HR.A.2019.knot',
                      # 'HR.J.2019.knot',
                      # 'HR.A.2019.cap',
-                     # 'HR.J.2019.cap',
-                     'mean.WMD.HR.A', #Mean WMD Harvest Rate
-                     'mean.WMD.HR.J',
-                     'sigma.harv.A',
-                     'sigma.harv.J',
-                     'WMD.HR.A', #WMD and Time Specific Harvest Rate
-                     'WMD.HR.J',
+                     # 'HR.J.2019.cap', 
+                     # 'HR.A.2020.knot',
+                     # 'HR.J.2020.knot',
+                     # 'HR.A.2020.cap',
+                     # 'HR.J.2020.cap',
+                     # 'mean.WMD.HR.A', #Mean WMD Harvest Rate
+                     # 'mean.WMD.HR.J',
+                     'WMD.HR.A.2018',
+                     'WMD.HR.J.2018',
+                     'WMD.HR.A.2019',
+                     'WMD.HR.J.2019',
+                     'WMD.HR.A.2020',
+                     'WMD.HR.J.2020',
+                     'WSR_M_J_S2W',
+                     'WSR_M_A_S2W',
+                     'WSR_M_J_W2S',
+                     'WSR_M_A_W2S',
                      'S_M_J_W2S', #Period Specific Survival 
                      'S_M_A_W2S', 
                      'S_M_J_S2W', 
-                     'S_M_A_S2W', 
-                     'N.A', #SS Abundance
-                     'N.J',
-                     'r.mean',
-                     'r',
-                     'sigma.rmean',
-                     'sigma.r'
+                     'S_M_A_S2W',
+                     'mean.AnnualS.J',
+                     'mean.AnnualS.A'
 )
 
-
-
-N.J.init <- ceiling((1+totharv.J[1:28,])/.14)
-N.J.init[1:4,] <- NA
-
-
-N.A.init <- ceiling((1+totharv.A[1:28,])/.25)
-N.A.init[1:4,] <- NA
-# N.A.init[,1] <- NA
-
-n.surv.A.init <- ceiling(N.A.init[,1:(ncol(N.A.init)-1)]*.4)
-n.surv.J.init <- ceiling(N.J.init[,1:(ncol(N.J.init)-1)]*.4)
-n.surv.A.init[1:4,] <- NA
-n.surv.J.init[1:4,] <- NA
-
-
-# For n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t])
-# Need to follow the below rules
-# n.surv.A.init[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
-# totharv.A[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
-for(i in 5:nrow(n.surv.A.init)){
-  if(n.surv.A.init[i,1] > (10+as.integer(totharv.A[i,1]))){
-    n.surv.A.init[i,1] <- (10+as.integer(totharv.A[i,1])) - 5
-  }
-  if(n.surv.J.init[i,1] > (10+as.integer(totharv.J[i,1]))){
-    n.surv.J.init[i,1] <- (10+as.integer(totharv.J[i,1])) - 5
-  }
-  
-  for(j in 2:ncol(n.surv.A.init)){
-    if(n.surv.A.init[i,j] > (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])){
-      n.surv.A.init[i,j] <- ceiling((n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])*.5)
-    }
-    
-    for(j in 2:ncol(totharv.A)){
-      if(totharv.A[i,j] > n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1]) {
-      x <- totharv.A[i,j] - n.surv.A.init[i,j-1] - n.surv.J.init[i,j-1]
-      n.surv.A.init[i,j-1] <- n.surv.A.init[i,j-1] + ceiling(x/2)
-      n.surv.J.init[i,j-1] <- n.surv.J.init[i,j-1] + ceiling(x/2)
-      }
-    }
-  }
-}
-
-mean.r.init <- c()
-mean.r.init[5:28] <- .3
-mean.r.init[1:4] <- NA
-
-N.A.init.c1 <- N.A.init
-N.A.init.c1[,2:ncol(N.A.init)] <- NA
-# N.J.init[,1] <- NA
 
 #Initial values
 inits.null <- function(){
@@ -152,7 +105,7 @@ inits.null <- function(){
 # nc <- 3 #number of chains
 
 #Model for JAGS
-br_w_as_model <- source(file = "BR Model - 2d JAGS Model Code - Simplified State Space.R")$value
+br_w_as_model <- source(file = "BR Model - 2a JAGS Model Code - Band Recovery-WSR Submodel Only.R")$value
 
 
 ### Run Model ###
@@ -168,7 +121,7 @@ BR_w_SPP_output <- jags(data = dat,
 
 BR_w_SPP_output
 
-write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "BR_P_SPP_SSPop_output.csv")
+write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3a_BRWSRsubmodel_output.csv")
 
 # autocorr.plot(wmdspecific_wmdsurv_output,ask=F,auto.layout = T)
 # 

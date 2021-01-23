@@ -1,5 +1,6 @@
 #Examine Model Outputs more easily
-outputs <- read.csv("BR_P_SPP_SSPop_output.csv")
+outputs <- as.data.frame(BR_w_SPP_output$BUGSoutput$summary)
+outputs$X <- rownames(outputs)
 # outputs <- read.csv("2010to2019_SSPop_output.csv")
 require(dplyr)
 require(stringr)

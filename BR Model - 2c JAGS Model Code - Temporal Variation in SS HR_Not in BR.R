@@ -3,23 +3,18 @@ function(){#####################################################################
   ### Weekly Survival Rate ###
   alpha_s ~ dbeta(1,1)
   intercept_s <- logit(alpha_s)
-  # beta_F_s ~ dunif(0,1) #Effect of sex on WSR (Male reference)
-  # beta_A_s ~ dunif(0,1) #Effect of age on WSR (Juv reference)
-  # beta_A_F_s ~ dunif(0,1) #Interaction term for Age/Sex(Male Juv reference)
-  # beta_S2W_s ~ dunif(0,1) #Effect of S2W (W2S reference)
-  # for(i in sampledwmd){beta_wmd_s[i] ~ dunif(0,1)} #Effect of wmd (W2S reference)
-  beta_F_s ~ dnorm(0,.1) #Effect of sex on WSR (Male reference)
-  beta_A_s ~ dnorm(0,.1) #Effect of age on WSR (Juv reference)
-  beta_A_F_s ~ dnorm(0,.1) #Interaction term for Age/Sex(Male Juv reference)
-  beta_S2W_s ~ dnorm(0,.1) #Effect of S2W (W2S reference)
-  for(i in sampledwmd){beta_wmd_s[i] ~ dnorm(0,.1)} #Effect of wmd (W2S reference)
+  beta_F_s ~ dunif(-10,10) #Effect of sex on WSR (Male reference)
+  beta_A_s ~ dunif(-10,10) #Effect of age on WSR (Juv reference)
+  beta_A_F_s ~ dunif(-10,10) #Interaction term for Age/Sex(Male Juv reference)
+  beta_S2W_s ~ dunif(-10,10) #Effect of S2W (W2S reference)
+  for(i in sampledwmd){beta_wmd_s[i] ~ dunif(-10,10)} #Effect of wmd (W2S reference)
   
   #WSR
   for(i in 1:nvisit){
     eta[i] <- intercept_s +
       beta_F_s*wsr_sex[i] + beta_A_s*wsr_age[i] + beta_A_F_s*wsr_age[i]*wsr_sex[i] +
       beta_S2W_s*wsr_time[i] + beta_wmd_s[wsr_wmd[i]]
-    logit(phi[i])<-eta[id[i]] # anti-logit to determine the daily survival rate
+    logit(phi[i])<-eta[i] # anti-logit to determine the daily survival rate
     mu[i]<-pow(phi[i],interval[i]) # period survival is DSR raised to the interval
     succ[i]~dbern(mu[i])  # the data is distributed as bernoulli with period survival as the mean
   }
@@ -28,10 +23,8 @@ function(){#####################################################################
   ### Band Recovery ###
   alpha_hr ~ dbeta(1,1)
   intercept_hr <- logit(alpha_hr)
-  # beta_A_hr ~ dunif(0,1) #Effect of Age on band recovery (Juv reference)
-  # beta_spp ~ dunif(0,1)
-  beta_A_hr ~ dnorm(0,.1) #Effect of Age on band recovery (Juv reference)
-  beta_spp ~ dnorm(0,.1)
+  beta_A_hr ~ dunif(-10,10) #Effect of Age on band recovery (Juv reference)
+  beta_spp ~ dunif(-10,10)
   
   #Specify period specific survival/band recovery
   for(j in 1:nind){
@@ -144,15 +137,15 @@ function(){#####################################################################
   ### State-Space Abundance ###
   #Survival Annual Process Error 
   tau.surv.A <- pow(sigma.surv.A, -2) #for Logit-Normal distribution
-  sigma.surv.A ~ dunif(0,.2) #for Logit-Normal distribution
+  sigma.surv.A ~ dunif(0,.4) #for Logit-Normal distribution
   tau.surv.J <- pow(sigma.surv.J, -2) #for Logit-Normal distribution
-  sigma.surv.J ~ dunif(0,.2) #for Logit-Normal distribution
+  sigma.surv.J ~ dunif(0,.4) #for Logit-Normal distribution
   
   #Harvest Rate Annual Process Error
   tau.harv.A <- pow(sigma.harv.A, -2) #for Logit-Normal distribution
-  sigma.harv.A ~ dunif(0,.04) #for Logit-Normal distribution
+  sigma.harv.A ~ dunif(0,.1) #for Logit-Normal distribution
   tau.harv.J <- pow(sigma.harv.J, -2) #for Logit-Normal distribution
-  sigma.harv.J ~ dunif(0,.04) #for Logit-Normal distribution
+  sigma.harv.J ~ dunif(0,.1) #for Logit-Normal distribution
   
   for(i in 1:N.wmd){
     for(t in 1:n.years){
@@ -182,8 +175,8 @@ function(){#####################################################################
     #Need to specify N[t=1], needs to be a whole number.
     #th.year1 are just the harvest totals from year 1
     #This assumes there is at least 10 turkeys in each WMD at the first timestep
-    N.A[WMD.id[i],1] <- round(((20+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1])) #Temporal Variation in HR
-    N.J[WMD.id[i],1] <- round(((20+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1])) #Temporal Variation in HR
+    N.A[WMD.id[i],1] <- round(((10+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1])) #Temporal Variation in HR
+    N.J[WMD.id[i],1] <- round(((10+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1])) #Temporal Variation in HR
     # N.A[WMD.id[i],1] ~ dpois((round(((10+th.year1.A[WMD.id[i]])/WMD.HR.A[WMD.id[i],1])))) #Temporal Variation in HR
     # N.J[WMD.id[i],1] ~ dpois((round(((10+th.year1.J[WMD.id[i]])/WMD.HR.J[WMD.id[i],1])))) #Temporal Variation in HR
     
@@ -199,16 +192,15 @@ function(){#####################################################################
       
       #Number of Birds recruited to the Juvenile population in t
       N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
-      meanY1[WMD.id[i],t] <- 10 + (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #This was 11 when it ran well
-      # meanY1[WMD.id[i],t] <- (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #
-      # meanY1[WMD.id[i],t] <- (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #
+      # meanY1[WMD.id[i],t] <- 10 + (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #This was 11 when it ran well
+      meanY1[WMD.id[i],t] <- (R[WMD.id[i],t] * N.A[WMD.id[i],t]) 
       
       #Year Specific recruitment rate
       # R[WMD.id[i],t] ~ dlnorm(log(mean.R[WMD.id[i]]), tau.R)
       # R[WMD.id[i],t] ~ dlnorm(mean.R[WMD.id[i]], tau.R)
       # R[WMD.id[i],t] <- log(R.x[WMD.id[i],t])
       # R.x[WMD.id[i],t] ~ dnorm(mean.R[WMD.id[i]], tau.R[WMD.id[i]])
-      R[WMD.id[i],t] ~ dunif(0.01, 3)
+      R[WMD.id[i],t] ~ dunif(0.001, 4)
     }
     #Average Recruitment Rate, WMD specific
     # mean.R[WMD.id[i]] ~ dunif(1,10^5)
