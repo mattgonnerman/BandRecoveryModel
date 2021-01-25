@@ -658,8 +658,8 @@ totharv.J <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
 N.A[,1] <- sample(min.N.A.1:max.N.A.1, C*D, replace = T)
 N.J[,1] <- sample(min.N.J.1:max.N.J.1, C*D, replace = T)
 
-r.matrix <- matrix(NA, nrow = length(sampledwmd), ncol = n.years.totharv)
-r.matrix[,1] <- rnorm(length(sampledwmd), mean.R, sd.R)
+r.matrix <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
+r.matrix[,1] <- rnorm(C*D, mean.R, sd.R)
 for(i in 1:nrow(r.matrix)){
   for(j in 2:ncol(r.matrix)){
     r.matrix[i,j] <- rnorm(1,r.matrix[i,1],.01)
