@@ -165,16 +165,12 @@ if(simrun != "Y"){
     }
   
   for(i in 1:nrow(n.surv.A.init)){
-    if(!is.na(n.surv.A.init[i,1])){
-      if(n.surv.A.init[i,1] > (5+as.integer(totharv.A[i,1]))){
+    if(n.surv.A.init[i,1] > (5+as.integer(totharv.A[i,1]))){
         n.surv.A.init[i,1] <- (5+as.integer(totharv.A[i,1])) - 5
-      }
     }
-    if(!is.na(n.surv.J.init[i,1])){
-      if(n.surv.J.init[i,1] > (5+as.integer(totharv.J[i,1]))){
+    if(n.surv.J.init[i,1] > (5+as.integer(totharv.J[i,1]))){
         n.surv.J.init[i,1] <- (5+as.integer(totharv.J[i,1])) - 5
-      }
-    }
+        }
     
     for(j in 2:ncol(n.surv.A.init)){
       if(n.surv.A.init[i,j] > (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])){
