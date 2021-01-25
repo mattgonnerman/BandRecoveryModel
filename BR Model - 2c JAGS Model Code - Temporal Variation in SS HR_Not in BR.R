@@ -212,7 +212,7 @@ function(){#####################################################################
       N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
       # meanY1[WMD.id[i],t] <- 10 + (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #This was 11 when it ran well
       # meanY1[WMD.id[i],t] <- (R[WMD.id[i],t] * N.A[WMD.id[i],t])
-      meanY1[WMD.id[i],t] <- (R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.A[WMD.id[i],t]))
+      meanY1[WMD.id[i],t] <- (R[WMD.id[i],t] * (N.A[WMD.id[i],t] + N.J[WMD.id[i],t]))
       R[WMD.id[i],t] ~ dlnorm(mean.R[WMD.id[i]], tau.R)
       
       #Year Specific recruitment rate
