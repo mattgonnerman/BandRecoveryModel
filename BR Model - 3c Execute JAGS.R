@@ -160,11 +160,6 @@ if(simrun != "Y"){
   # n.surv.A.init[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
   # totharv.A[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
   for(i in 1:nrow(n.surv.A.init)){
-    if(is.na(n.surv.A.init[i,1])){
-      
-    }
-  
-  for(i in 1:nrow(n.surv.A.init)){
     if(n.surv.A.init[i,1] > (5+as.integer(totharv.A[i,1]))){
         n.surv.A.init[i,1] <- (5+as.integer(totharv.A[i,1])) - 5
     }
