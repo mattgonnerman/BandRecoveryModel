@@ -22,10 +22,14 @@ n.occasions.wsr <- 52*n.years.telem # Maximum Exposure Length
 ntelemind <- 200    # Annual number of newly marked individuals
 visit.rate <- .95 #Probability of finding a bird in a given week, assuming it hasn't been found dead yet
 
-#Amount of spatial correlation in harves rate and survival
-# lower means more correlated over longer distances
-wsr.sc <- 10 #weekly survival rate
-hr.sc <- 5 #harvest rate
+#Amount of spatial correlation in harvest rate and survival
+# Range = lower means more correlated over longer distances
+wsr.sc <- .2 #weekly survival rate
+hr.sc <- .1 #harvest rate
+#The amount of variation across the landscape
+psill.wsr <- .02 #Max = 
+psill.hr <- .001 #Max = 
+#nuggest is half of psill so local variation is half of the total variation observed
 
 # Harvest Rate Regression Coefficients
 hr <- .25 #set weekly survival rate for simulation
@@ -82,9 +86,9 @@ names(Field) = c('x','y')
 
 ## HARVEST RATE
 # Set the parameters of the semi-variogram
-Psill = .001 ## Partial sill = Magnitude of variation, value that variogram levels out at 
-Range= A/hr.sc  ## Maximal distance of autocorrelation, where variogram levels out
-Nugget=.001  ## Small-scale variations
+Psill = psill.hr ## Partial sill = Magnitude of variation, value that variogram levels out at 
+Range= A*hr.sc  ## Maximal distance of autocorrelation, where variogram levels out
+Nugget= psill.hr/2  ## Small-scale variations
 # Set the semi-variogram model
 Beta = 0   ## mean yield (tons/ha) in the field
 HR_modelling=gstat(formula=z~1, ## We assume that there is a constant trend in the data
@@ -110,9 +114,9 @@ HR_spvar.points <- st_as_sf(HR_gaussian_field, coords = c("x","y"))
 
 ## WEEKLY SURVIVAL RATE
 # Set the parameters of the semi-variogram
-Psill = .02 ## Partial sill = Magnitude of variation, value that variogram levels out at 
-Range= A/wsr.sc  ## Maximal distance of autocorrelation, where variogram levels out
-Nugget=.001  ## Small-scale variations
+Psill = psill.wsr ## Partial sill = Magnitude of variation, value that variogram levels out at 
+Range = A*wsr.sc  ## Maximal distance of autocorrelation, where variogram levels out
+Nugget = psill.wsr  ## Small-scale variations
 # Set the semi-variogram model
 Beta = 0   ## mean yield (tons/ha) in the field
 WSR_modelling=gstat(formula=z~1, ## We assume that there is a constant trend in the data
@@ -136,9 +140,8 @@ WSR_spvar.points <- st_as_sf(WSR_gaussian_field, coords = c("x","y"))
 #   scale_colour_gradient(low="red",high="green")   ## Set the colors of the gradient
 
 
-
 # Create Banding Sites
-bandsiteselect <- st_as_sf(st_sample(SA.grid, nbandsites)) %>%
+bandsiteselect <- st_as_sf(st_sample(SA.grid, nbandsites, by_polygon = T)) %>%
   mutate(SiteID = 1:nbandsites)
 
 # bandsiteselect<- sample(1:nrow(SA.points.df), nbandsites, replace = F)
@@ -648,12 +651,12 @@ Region_Means <- merge(Region_Mean_HR, Region_Mean_WSR, by = "RegionID") %>%
   mutate(Annual.S.J = (1-Mean.HR.J)*(Mean.WSR.J^47))
 
 #Create Total Harvest Matrices
-N.A <- matrix(NA, nrow = length(sampledwmd), ncol = n.years.totharv)
-N.J <- matrix(NA, nrow = length(sampledwmd), ncol = n.years.totharv)
-totharv.A <- matrix(NA, nrow = length(sampledwmd), ncol = n.years.totharv)
-totharv.J <- matrix(NA, nrow = length(sampledwmd), ncol = n.years.totharv)
-N.A[,1] <- sample(min.N.A.1:max.N.A.1, length(sampledwmd), replace = T)
-N.J[,1] <- sample(min.N.J.1:max.N.J.1, length(sampledwmd), replace = T)
+N.A <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
+N.J <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
+totharv.A <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
+totharv.J <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
+N.A[,1] <- sample(min.N.A.1:max.N.A.1, C*D, replace = T)
+N.J[,1] <- sample(min.N.J.1:max.N.J.1, C*D, replace = T)
 
 r.matrix <- matrix(NA, nrow = length(sampledwmd), ncol = n.years.totharv)
 r.matrix[,1] <- rnorm(length(sampledwmd), mean.R, sd.R)

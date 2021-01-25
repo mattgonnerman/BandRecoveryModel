@@ -1,3 +1,5 @@
+require(R2jags)
+
 ###################################################################################################################
 ###################################################################################################################
 ###################################################################################################################
@@ -13,7 +15,6 @@
 dat <- list( succ = succ, #Adult Survival
              interval = interval, #Adult Survival
              nvisit = length(succ), #Adult Survival
-             id = ID, #Adult Survival
              wsr_sex = wsr_sex, #Adult Survival
              wsr_age = wsr_age, #Adult Survival
              wsr_time = wsr_time, #Adult Survival
@@ -83,54 +84,56 @@ parameters.null <- c('alpha_s',
 )
 
 
-
-N.J.init <- ceiling((1+totharv.J[1:28,])/.14)
-N.J.init[1:4,] <- NA
-
-
-N.A.init <- ceiling((1+totharv.A[1:28,])/.25)
-N.A.init[1:4,] <- NA
-# N.A.init[,1] <- NA
-
-n.surv.A.init <- ceiling(N.A.init[,1:(ncol(N.A.init)-1)]*.4)
-n.surv.J.init <- ceiling(N.J.init[,1:(ncol(N.J.init)-1)]*.4)
-n.surv.A.init[1:4,] <- NA
-n.surv.J.init[1:4,] <- NA
-
-
-# For n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t])
-# Need to follow the below rules
-# n.surv.A.init[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
-# totharv.A[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
-for(i in 5:nrow(n.surv.A.init)){
-  if(n.surv.A.init[i,1] > (10+as.integer(totharv.A[i,1]))){
-    n.surv.A.init[i,1] <- (10+as.integer(totharv.A[i,1])) - 5
-  }
-  if(n.surv.J.init[i,1] > (10+as.integer(totharv.J[i,1]))){
-    n.surv.J.init[i,1] <- (10+as.integer(totharv.J[i,1])) - 5
-  }
+if( simrun != "Y"){
+  N.J.init <- ceiling((1+totharv.J[1:28,])/.14)
+  N.J.init[1:4,] <- NA
   
-  for(j in 2:ncol(n.surv.A.init)){
-    if(n.surv.A.init[i,j] > (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])){
-      n.surv.A.init[i,j] <- ceiling((n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])*.5)
+  
+  N.A.init <- ceiling((1+totharv.A[1:28,])/.25)
+  N.A.init[1:4,] <- NA
+  # N.A.init[,1] <- NA
+  
+  n.surv.A.init <- ceiling(N.A.init[,1:(ncol(N.A.init)-1)]*.4)
+  n.surv.J.init <- ceiling(N.J.init[,1:(ncol(N.J.init)-1)]*.4)
+  n.surv.A.init[1:4,] <- NA
+  n.surv.J.init[1:4,] <- NA
+  
+  
+  # For n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t])
+  # Need to follow the below rules
+  # n.surv.A.init[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
+  # totharv.A[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
+  for(i in 5:nrow(n.surv.A.init)){
+    if(n.surv.A.init[i,1] > (10+as.integer(totharv.A[i,1]))){
+      n.surv.A.init[i,1] <- (10+as.integer(totharv.A[i,1])) - 5
+    }
+    if(n.surv.J.init[i,1] > (10+as.integer(totharv.J[i,1]))){
+      n.surv.J.init[i,1] <- (10+as.integer(totharv.J[i,1])) - 5
     }
     
-    for(j in 2:ncol(totharv.A)){
-      if(totharv.A[i,j] > n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1]) {
-      x <- totharv.A[i,j] - n.surv.A.init[i,j-1] - n.surv.J.init[i,j-1]
-      n.surv.A.init[i,j-1] <- n.surv.A.init[i,j-1] + ceiling(x/2)
-      n.surv.J.init[i,j-1] <- n.surv.J.init[i,j-1] + ceiling(x/2)
+    for(j in 2:ncol(n.surv.A.init)){
+      if(n.surv.A.init[i,j] > (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])){
+        n.surv.A.init[i,j] <- ceiling((n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])*.5)
+      }
+      
+      for(j in 2:ncol(totharv.A)){
+        if(totharv.A[i,j] > n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1]) {
+          x <- totharv.A[i,j] - n.surv.A.init[i,j-1] - n.surv.J.init[i,j-1]
+          n.surv.A.init[i,j-1] <- n.surv.A.init[i,j-1] + ceiling(x/2)
+          n.surv.J.init[i,j-1] <- n.surv.J.init[i,j-1] + ceiling(x/2)
+        }
       }
     }
   }
+  
+  mean.r.init <- c()
+  mean.r.init[5:28] <- .3
+  mean.r.init[1:4] <- NA
+  
+  N.A.init.c1 <- N.A.init
+  N.A.init.c1[,2:ncol(N.A.init)] <- NA
 }
 
-mean.r.init <- c()
-mean.r.init[5:28] <- .3
-mean.r.init[1:4] <- NA
-
-N.A.init.c1 <- N.A.init
-N.A.init.c1[,2:ncol(N.A.init)] <- NA
 # N.J.init[,1] <- NA
 
 #Initial values
@@ -168,7 +171,7 @@ BR_w_SPP_output <- jags(data = dat,
 
 BR_w_SPP_output
 
-write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "BR_P_SPP_SSPop_output.csv")
+write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3d_simplifiedSS_output.csv")
 
 # autocorr.plot(wmdspecific_wmdsurv_output,ask=F,auto.layout = T)
 # 

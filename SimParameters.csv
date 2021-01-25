@@ -1,0 +1,5 @@
+﻿Parameter,Low,Medium,High,Notes
+Psill (HR),0.001,0.005,0.01,Magnitude of variation in harvest rate
+Range (HR),0.1,0.25,0.4,"Distance of spatial correlation, measured as proportion of study area"
+# Grid Cells,4,5,6,"Changes the overall size of the grid cells, not area covered by study area"
+# Banding Site,90,120,150,"At least one site in each region, number banded proportional to number of banding sites? "

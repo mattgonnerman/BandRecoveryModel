@@ -15,7 +15,6 @@ require(R2jags)
 dat <- list( succ = succ, #Adult Survival
              interval = interval, #Adult Survival
              nvisit = length(succ), #Adult Survival
-             # id = ID, #Adult Survival
              wsr_sex = wsr_sex, #Adult Survival
              wsr_age = wsr_age, #Adult Survival
              wsr_time = wsr_time, #Adult Survival
@@ -49,9 +48,7 @@ dat <- list( succ = succ, #Adult Survival
 ) #for Harvest rate estimates
 
 #Parameters monitors
-parameters.null <- c('alpha_s', 
-                     'alpha_hr', 
-                     'intercept_s', #Non-Harvest Survival Intercept 
+parameters.null <- c('intercept_s', #Non-Harvest Survival Intercept 
                      'beta_F_s', #Non-Harvest Survival Beta - Female
                      'beta_A_s', #Non-Harvest Survival Beta - Adult
                      'beta_A_F_s', #Non-Harvest Survival Beta - F*A Interaction
@@ -63,7 +60,7 @@ parameters.null <- c('alpha_s',
                      # 'beta_2020_hr', #Harvest Rate Betas - 2020
                      # 'w.tilde', 
                      # 'w.tilde.star',
-                     'phi.spp', 
+                     # 'phi.spp', 
                      # 'HR.A.2019.knot',
                      # 'HR.J.2019.knot',
                      # 'HR.A.2019.cap',
@@ -112,11 +109,11 @@ if(simrun != "Y"){
   # n.surv.A.init[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
   # totharv.A[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
   for(i in 5:nrow(n.surv.A.init)){
-    if(n.surv.A.init[i,1] > (10+as.integer(totharv.A[i,1]))){
-      n.surv.A.init[i,1] <- (10+as.integer(totharv.A[i,1])) - 5
+    if(n.surv.A.init[i,1] > (5+as.integer(totharv.A[i,1]))){
+      n.surv.A.init[i,1] <- (5+as.integer(totharv.A[i,1])) - 5
     }
-    if(n.surv.J.init[i,1] > (10+as.integer(totharv.J[i,1]))){
-      n.surv.J.init[i,1] <- (10+as.integer(totharv.J[i,1])) - 5
+    if(n.surv.J.init[i,1] > (5+as.integer(totharv.J[i,1]))){
+      n.surv.J.init[i,1] <- (5+as.integer(totharv.J[i,1])) - 5
     }
 
     for(j in 2:ncol(n.surv.A.init)){
@@ -151,8 +148,8 @@ if(simrun != "Y"){
   
   
   
-  N.J.init <- ceiling((10+totharv.J)/.2)
-  N.A.init <- ceiling((10+totharv.A)/.25)
+  N.J.init <- ceiling((5+totharv.J)/.2)
+  N.A.init <- ceiling((5+totharv.A)/.25)
   # N.A.init[,1] <- NA
   
   n.surv.A.init <- ceiling(N.A.init[,1:(ncol(N.A.init)-1)]*.4)
@@ -163,11 +160,11 @@ if(simrun != "Y"){
   # n.surv.A.init[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
   # totharv.A[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
   for(i in 5:nrow(n.surv.A.init)){
-    if(n.surv.A.init[i,1] > (10+as.integer(totharv.A[i,1]))){
-      n.surv.A.init[i,1] <- (10+as.integer(totharv.A[i,1])) - 5
+    if(n.surv.A.init[i,1] > (5+as.integer(totharv.A[i,1]))){
+      n.surv.A.init[i,1] <- (5+as.integer(totharv.A[i,1])) - 5
     }
-    if(n.surv.J.init[i,1] > (10+as.integer(totharv.J[i,1]))){
-      n.surv.J.init[i,1] <- (10+as.integer(totharv.J[i,1])) - 5
+    if(n.surv.J.init[i,1] > (5+as.integer(totharv.J[i,1]))){
+      n.surv.J.init[i,1] <- (5+as.integer(totharv.J[i,1])) - 5
     }
     
     for(j in 2:ncol(n.surv.A.init)){
@@ -185,8 +182,7 @@ if(simrun != "Y"){
     }
   }
   
-  mean.r.init <- c()
-  mean.r.init <- 2
+  mean.r.init[1:nrow(WMD.matrix)] <- 2
   
   N.A.init.c1 <- N.A.init
   N.A.init.c1[,2:ncol(N.A.init)] <- NA
@@ -203,7 +199,7 @@ inits.null <- function(){
        n.surv.J = n.surv.J.init,
        N.J = N.J.init,
        # N.A = N.A.init.c1,
-       mean.R = mean.r.init,
+       # mean.R = mean.r.init,
        R.x = R.x)
 }
 

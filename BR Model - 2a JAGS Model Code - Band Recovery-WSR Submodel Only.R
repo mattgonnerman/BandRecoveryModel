@@ -3,12 +3,11 @@ function(){#####################################################################
   ### Weekly Survival Rate ###
   alpha_s ~ dbeta(1,1)
   intercept_s <- logit(alpha_s)
-  beta_F_s ~ dnorm(0,.1) #Effect of sex on WSR (Male reference)
-  beta_A_s ~ dnorm(0,.1) #Effect of age on WSR (Juv reference)
-  beta_A_F_s ~ dnorm(0,.1) #Interaction term for Age/Sex(Male Juv reference)
-  beta_S2W_s ~ dnorm(0,.1) #Effect of S2W (W2S reference)
-  for(i in sampledwmd){beta_wmd_s[i] ~ dnorm(0,.1)} #Effect of wmd (W2S reference)
-  #Original had priors from uniform distribution, dunif(0,1). Likely was an oversight
+  beta_F_s ~ dnorm(0,.01) #Effect of sex on WSR (Male reference)
+  beta_A_s ~ dnorm(0,.01) #Effect of age on WSR (Juv reference)
+  beta_A_F_s ~ dnorm(0,.01) #Interaction term for Age/Sex(Male Juv reference)
+  beta_S2W_s ~ dnorm(0,.01) #Effect of S2W (W2S reference)
+  for(i in sampledwmd){beta_wmd_s[i] ~ dnorm(0,.01)} #Effect of wmd (W2S reference)
   
   #WSR
   for(i in 1:nvisit){
@@ -20,13 +19,15 @@ function(){#####################################################################
     succ[i]~dbern(mu[i])  # the data is distributed as bernoulli with period survival as the mean
   }
   
+  
   ##############################################################################################
   ### Band Recovery ###
   alpha_hr ~ dbeta(1,1)
   intercept_hr <- logit(alpha_hr)
-  beta_2019_hr ~ dnorm(0,.1) #Effect of Year on band recovery (2019 vs other) #This could probably be coded as a loop in the future to make it easier for IFW
-  beta_2020_hr ~ dnorm(0,.1) #Effect of Year on band recovery (2020 vs other)
-  beta_A_hr ~ dnorm(0,.1) #Effect of Age on band recovery (Juv reference)
+  #beta_year[i] Could code this similarly to how you do wmd, just need a vector/matrix with year of capture
+  beta_2019_hr ~ dnorm(0,.01) #Effect of Year on band recovery (2019 vs other)
+  beta_2020_hr ~ dnorm(0,.01) #Effect of Year on band recovery (2020 vs other)
+  beta_A_hr ~ dnorm(0,.01) #Effect of Age on band recovery (Juv reference)
   
   #Specify period specific survival/band recovery
   for(j in 1:nind){
@@ -72,6 +73,7 @@ function(){#####################################################################
     } #t
   } #k
   
+  
   ##############################################################################################
   ### Spatial Predictive Process ###
   sigmasq <- 1/sigmasq.inv
@@ -100,6 +102,7 @@ function(){#####################################################################
   for(i in 1:N.cap){
     correction[i] = t(C.s.star[i,1:N.knot])%*%C.star.inv[1:N.knot,1:N.knot]%*%C.s.star[i,1:N.knot]
   }
+  
   
   ##############################################################################################
   ### Derived Parameters - HR Combined Years ###
@@ -150,40 +153,4 @@ function(){#####################################################################
   #Average Non Harvest Survival
   mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W
   mean.AnnualS.J <- S_M_J_W2S * S_M_J_S2W
-  
-  ### Derived Parameters - HR Separate Years ###
-  ##HR/Pop/Survival Size Estimates
-  #Capture Site specific harvest rates
-  # for(i in 1:N.cap){
-  #   logit(HR.A.2019.cap[i]) <- intercept_hr + beta_A_hr + beta_2019_hr + w.tilde[i] + e.cap[i]
-  #   logit(HR.J.2019.cap[i]) <- intercept_hr + beta_2019_hr + w.tilde[i] + e.cap[i]
-  # }
-  # #Knot specific harvest rates
-  # for(i in 1:N.knot){
-  #   logit(HR.A.2019.knot[i]) <- intercept_hr + beta_A_hr + beta_2019_hr + w.tilde.star[i]
-  #   logit(HR.J.2019.knot[i]) <- intercept_hr + beta_2019_hr + w.tilde.star[i]
-  #   logit(HR.A.2020.knot[i]) <- intercept_hr + beta_A_hr + beta_2020_hr + w.tilde.star[i]
-  #   logit(HR.J.2020.knot[i]) <- intercept_hr + beta_2020_hr + w.tilde.star[i]
-  # }
-  # 
-  # #WMD Specific Harvest Rates
-  # for(i in 1:N.wmd){
-  #   WMD.HR.J.2019[WMD.id[i]] <- mean(HR.J.2019.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-  #   WMD.HR.A.2019[WMD.id[i]] <- mean(HR.A.2019.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-  #   WMD.HR.J.2020[WMD.id[i]] <- mean(HR.J.2020.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-  #   WMD.HR.A.2020[WMD.id[i]] <- mean(HR.A.2020.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-  # }
-  # 
-  # for(i in sampledwmd){
-  #   logit(WSR_M_J_S2W[i]) <- intercept_s + beta_S2W_s + beta_wmd_s[i]
-  #   logit(WSR_M_A_S2W[i]) <- intercept_s + beta_A_s + beta_S2W_s + beta_wmd_s[i]
-  #   logit(WSR_M_J_W2S[i]) <- intercept_s + beta_wmd_s[i]
-  #   logit(WSR_M_A_W2S[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
-  #   
-  #   S_M_J_W2S[i] <- pow(WSR_M_J_S2W[i], 11)
-  #   S_M_A_W2S[i] <- pow(WSR_M_A_S2W[i], 11)
-  #   S_M_J_S2W[i] <- pow(WSR_M_J_S2W[i], 36)
-  #   S_M_A_S2W[i] <- pow(WSR_M_A_S2W[i], 36)
-  # }
-  
 }

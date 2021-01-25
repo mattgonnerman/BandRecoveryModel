@@ -8,18 +8,18 @@ function(){#####################################################################
   # beta_A_F_s ~ dunif(0,1) #Interaction term for Age/Sex(Male Juv reference)
   # beta_S2W_s ~ dunif(0,1) #Effect of S2W (W2S reference)
   # for(i in sampledwmd){beta_wmd_s[i] ~ dunif(0,1)} #Effect of wmd (W2S reference)
-  beta_F_s ~ dnorm(0,.1) #Effect of sex on WSR (Male reference)
-  beta_A_s ~ dnorm(0,.1) #Effect of age on WSR (Juv reference)
-  beta_A_F_s ~ dnorm(0,.1) #Interaction term for Age/Sex(Male Juv reference)
-  beta_S2W_s ~ dnorm(0,.1) #Effect of S2W (W2S reference)
-  for(i in sampledwmd){beta_wmd_s[i] ~ dnorm(0,.1)} #Effect of wmd (W2S reference)
+  beta_F_s ~ dnorm(0,.01) #Effect of sex on WSR (Male reference)
+  beta_A_s ~ dnorm(0,.01) #Effect of age on WSR (Juv reference)
+  beta_A_F_s ~ dnorm(0,.01) #Interaction term for Age/Sex(Male Juv reference)
+  beta_S2W_s ~ dnorm(0,.01) #Effect of S2W (W2S reference)
+  for(i in sampledwmd){beta_wmd_s[i] ~ dnorm(0,.01)} #Effect of wmd (W2S reference)
   
   #WSR
   for(i in 1:nvisit){
     eta[i] <- intercept_s +
       beta_F_s*wsr_sex[i] + beta_A_s*wsr_age[i] + beta_A_F_s*wsr_age[i]*wsr_sex[i] +
       beta_S2W_s*wsr_time[i] + beta_wmd_s[wsr_wmd[i]]
-    logit(phi[i])<-eta[id[i]] # anti-logit to determine the daily survival rate
+    logit(phi[i])<-eta[i] # anti-logit to determine the daily survival rate
     mu[i]<-pow(phi[i],interval[i]) # period survival is DSR raised to the interval
     succ[i]~dbern(mu[i])  # the data is distributed as bernoulli with period survival as the mean
   }
@@ -30,8 +30,7 @@ function(){#####################################################################
   intercept_hr <- logit(alpha_hr)
   # beta_A_hr ~ dunif(0,1) #Effect of Age on band recovery (Juv reference)
   # beta_spp ~ dunif(0,1)
-  beta_A_hr ~ dnorm(0,.1) #Effect of Age on band recovery (Juv reference)
-  beta_spp ~ dnorm(0,.1)
+  beta_A_hr ~ dnorm(0,.01) #Effect of Age on band recovery (Juv reference)
   
   #Specify period specific survival/band recovery
   for(j in 1:nind){
@@ -150,50 +149,54 @@ function(){#####################################################################
   # 
   
   
-#   for(i in 1:N.wmd){
-#     for(t in 1:n.years){
-#       #Total harvest Observation #Temporal Variation in HR
-#       # th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Temporal Variation in HR
-#       # th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Temporal Variation in HR
-#       N.A[WMD.id[i],t] <- th.A[WMD.id[i],t]/mean.WMD.HR.A[WMD.id[i]] #Temporal Variation in HR
-#       N.J[WMD.id[i],t] <- th.J[WMD.id[i],t]/mean.WMD.HR.J[WMD.id[i]] #Temporal Variation in HR
-#       
-#       # th.A[WMD.id[i],t] ~ dbinom(mean.WMD.HR.A[WMD.id[i]], N.A[WMD.id[i],t]) #Temporal Variation in HR
-#       # th.J[WMD.id[i],t] ~ dbinom(mean.WMD.HR.J[WMD.id[i]], N.J[WMD.id[i],t]) #Temporal Variation in HR
-#       # 
-#       # A.alpha[WMD.id[i],t] ~ dunif(-10,10)
-#       # log(lambda.N.A[WMD.id[i],t]) <- A.alpha[WMD.id[i],t]
-#       # N.A[WMD.id[i],t] ~ dpois(lambda.N.A[WMD.id[i],t])
-#       # 
-#       # J.alpha[WMD.id[i],t] ~ dunif(-10,10)
-#       # log(lambda.N.J[WMD.id[i],t]) <- J.alpha[WMD.id[i],t]
-#       # N.J[WMD.id[i],t] ~ dpois(lambda.N.J[WMD.id[i],t])
-# 
-#       # #Annual Variation in Harvest Rate #Temporal Variation in HR
-#       # l.WMD.HR.A[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A) #Temporal Variation in HR
-#       # l.WMD.HR.J[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.J[WMD.id[i]]), tau.harv.J) #Temporal Variation in HR
-#       # 
-#       # logit(WMD.HR.A[WMD.id[i],t]) <- l.WMD.HR.A[WMD.id[i],t] #Temporal Variation in HR
-#       # logit(WMD.HR.J[WMD.id[i],t]) <- l.WMD.HR.J[WMD.id[i],t] #Temporal Variation in HR
-#     }
-#     
-#     #Need to specify N[t=1], needs to be a whole number.
-#     #th.year1 are just the harvest totals from year 1
-#     #This assumes there is at least 10 turkeys in each WMD at the first timestep
-#     # N.A[WMD.id[i],1] <- round(((20+(th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]]))) #Temporal Variation in HR
-#     # N.J[WMD.id[i],1] <- round(((20+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])) #Temporal Variation in HR
-#     # 
-#     # 
-#     
-#   #   for(t in 1:(n.years-1)){
-#   #     r[WMD.id[i],t] ~ dnorm(r.mean[WMD.id[i]], tau.r)
-#   #     lambda[WMD.id[i],t] <- pow(2.71828,r[WMD.id[i],t])
-#   #     N[WMD.id[i],t+1] <- (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])*lambda[WMD.id[i],t]
-#     }
-#   #   r.mean[WMD.id[i]] ~ dnorm(0,tau.rmean)
-#   # }
-#   # tau.rmean <- 1/(sigma.rmean * sigma.rmean)
-#   # sigma.rmean ~ dunif(0,.5)
-#   # tau.r <- 1/(sigma.r * sigma.r)
-#   # sigma.r ~ dunif(0,.5)
+  for(i in 1:N.wmd){
+    for(t in 1:n.years){
+      #Total harvest Observation
+      # #Directly Derive
+      # N.A[WMD.id[i],t] <- th.A[WMD.id[i],t]/mean.WMD.HR.A[WMD.id[i]] #Temporal Variation in HR
+      # N.J[WMD.id[i],t] <- th.J[WMD.id[i],t]/mean.WMD.HR.J[WMD.id[i]] #Temporal Variation in HR
+      
+      #Simple binomial distribution
+      th.A[WMD.id[i],t] ~ dbinom(mean.WMD.HR.A[WMD.id[i]], N.A[WMD.id[i],t])
+      th.J[WMD.id[i],t] ~ dbinom(mean.WMD.HR.J[WMD.id[i]], N.J[WMD.id[i],t])
+      
+      # #Temporal Variation in HR
+      # th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Temporal Variation in HR
+      # th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Temporal Variation in HR
+
+      A.alpha[WMD.id[i],t] ~ dunif(-10,10)
+      log(lambda.N.A[WMD.id[i],t]) <- A.alpha[WMD.id[i],t]
+      N.A[WMD.id[i],t] ~ dpois(lambda.N.A[WMD.id[i],t])
+
+      J.alpha[WMD.id[i],t] ~ dunif(-10,10)
+      log(lambda.N.J[WMD.id[i],t]) <- J.alpha[WMD.id[i],t]
+      N.J[WMD.id[i],t] ~ dpois(lambda.N.J[WMD.id[i],t])
+
+      # #Annual Variation in Harvest Rate #Temporal Variation in HR
+      # l.WMD.HR.A[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A) #Temporal Variation in HR
+      # l.WMD.HR.J[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.J[WMD.id[i]]), tau.harv.J) #Temporal Variation in HR
+      #
+      # logit(WMD.HR.A[WMD.id[i],t]) <- l.WMD.HR.A[WMD.id[i],t] #Temporal Variation in HR
+      # logit(WMD.HR.J[WMD.id[i],t]) <- l.WMD.HR.J[WMD.id[i],t] #Temporal Variation in HR
+    }
+
+    # Need to specify N[t=1], needs to be a whole number.
+    # th.year1 are just the harvest totals from year 1
+    # This assumes there is at least 10 turkeys in each WMD at the first timestep
+    # N.A[WMD.id[i],1] <- round(((5+(th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]]))) #Temporal Variation in HR
+    # N.J[WMD.id[i],1] <- round(((5+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])) #Temporal Variation in HR
+
+
+
+    # for(t in 1:(n.years-1)){
+    #   r[WMD.id[i],t] ~ dnorm(r.mean[WMD.id[i]], tau.r)
+    #   lambda[WMD.id[i],t] <- pow(2.71828,r[WMD.id[i],t])
+    #   N[WMD.id[i],t+1] <- (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])*lambda[WMD.id[i],t]
+    #   }
+    # r.mean[WMD.id[i]] ~ dnorm(0,tau.rmean)
+  }
+  # tau.rmean <- 1/(sigma.rmean * sigma.rmean)
+  # sigma.rmean ~ dunif(0,.5)
+  # tau.r <- 1/(sigma.r * sigma.r)
+  # sigma.r ~ dunif(0,.5)
 }

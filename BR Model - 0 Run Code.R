@@ -15,7 +15,7 @@ nc <- 3 #number of chains
 
 ### This is the current model I am favoring. Still have the initial drop in HR from year 1 to 2 no matter the input data
 ### also still underestimating harvest rates compared to the nonState Space model.
-source(file = "BR Model - 3a Execute JAGS.R") # Band Recovery-WSR SubModel Only, HR by year
+# source(file = "BR Model - 3a Execute JAGS.R") # Band Recovery-WSR SubModel Only, HR by year
 source(file = "BR Model - 3c Execute JAGS.R") # Temporal Variation in HR within SS but not within BR (no covariates for year when estimating HR)
 # source(file = "BR Model - 3d Execute JAGS.R") # Simplified State Space approach
 # source(file = "BR Model - 3z Execute JAGS.R") # Master Script for testing various options for dealing with underestimation of HR
