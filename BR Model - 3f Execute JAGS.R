@@ -148,13 +148,13 @@ if(simrun != "Y"){
   
   
   
-  N.J.init <- ceiling((5+totharv.J)/.2)
-  N.A.init <- ceiling((5+totharv.A)/.25)
-  # N.A.init[,1] <- NA
   
-  n.surv.A.init <- ceiling(N.A.init[,1:(ncol(N.A.init)-1)]*.4)
-  n.surv.J.init <- ceiling(N.J.init[,1:(ncol(N.J.init)-1)]*.4)
+  N.J.init <- ceiling((5+totharv.J)/.1)
+  N.A.init <- ceiling((5+totharv.A)/.2)
+  n.surv.A.init <- floor(N.A.init[,1:(ncol(N.A.init)-1)]/2)
+  n.surv.J.init <- floor(N.A.init[,1:(ncol(N.A.init)-1)]/2)
   
+ 
   # For n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t])
   # Need to follow the below rules
   # n.surv.A.init[i,j] < (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])
@@ -166,35 +166,30 @@ if(simrun != "Y"){
     if(n.surv.J.init[i,1] > (5+as.integer(totharv.J[i,1]))){
         n.surv.J.init[i,1] <- (5+as.integer(totharv.J[i,1])) - 5
         }
-    
+
     for(j in 2:ncol(n.surv.A.init)){
       if(n.surv.A.init[i,j] > (n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])){
         n.surv.A.init[i,j] <- ceiling((n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])*.5)
+        # n.surv.J.init[i,j] <- ceiling((n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1])*.5)
       }
-      
+
       for(j in 2:ncol(totharv.A)){
         if(totharv.A[i,j] > n.surv.A.init[i,j-1] + n.surv.J.init[i,j-1]) {
           x <- totharv.A[i,j] - n.surv.A.init[i,j-1] - n.surv.J.init[i,j-1]
-          n.surv.A.init[i,j-1] <- n.surv.A.init[i,j-1] + ceiling(x/2)
-          n.surv.J.init[i,j-1] <- n.surv.J.init[i,j-1] + ceiling(x/2)
+          n.surv.A.init[i,j-1] <- n.surv.A.init[i,j-1] + ceiling(x/2) + 1
+          n.surv.J.init[i,j-1] <- n.surv.J.init[i,j-1] + ceiling(x/2) + 1
         }
       }
     }
   }
-  mean.r.init <- c()
-  mean.r.init[1:nrow(WMD.matrix)] <- 2
-  
-  # alpha.r.init <- c()
-  # alpha.r.init[1:nrow(WMD.matrix)]<- 0.6931472
-  alpha.r.init <- matrix(0.6931472, 
-                         nrow = nrow(WMD.matrix), 
-                         ncol = ncol(totharv.A)-1)
-  
+  # mean.r.init <- c()
+  # mean.r.init[1:C*D] <- 2
+  # 
   N.A.init.c1 <- N.A.init
   N.A.init.c1[,2:ncol(N.A.init)] <- NA
-  N.J.init[,1] <- NA
-  
-  R.x <- matrix(2.7, ncol = ncol(N.A.init)-1, nrow = nrow(N.A.init))
+  # N.J.init[,1] <- NA
+  # 
+  # R.x <- matrix(2.7, ncol = ncol(N.A.init)-1, nrow = nrow(N.A.init))
 }
 
 
@@ -203,28 +198,13 @@ inits.null <- function(){
   list(z = mr.init.z(EH_raw),
        n.surv.A = n.surv.A.init,
        n.surv.J = n.surv.J.init,
-       # N.J = N.J.init,
-       # N.A = N.A.init.c1,
+       N.J = N.J.init,
+       N.A = N.A.init.c1,
        # mean.R = mean.r.init,
-       alpha.R = alpha.r.init
-       # R.x = R.x
+       R.x = R.x
        )
 }
 
-
-names_for_parallel <- c("EH_raw", 
-                        "alpha.r.init", 
-                        "n.surv.A.init", 
-                        "n.surv.J.init", 
-                        "nb", 
-                        "nt", 
-                        "nc",
-                        "ni",
-                        "br_w_as_model",
-                        "dat",
-                        "parameters.null",
-                        "inits.null", 
-                        "mr.init.z")
 # #MCMC settings
 # ni <- 5000 #number of iterations
 # nt <- 8 #thinning
@@ -232,37 +212,23 @@ names_for_parallel <- c("EH_raw",
 # nc <- 3 #number of chains
 
 #Model for JAGS
-br_w_as_model <- source(file = "BR Model - 2c JAGS Model Code - Temporal Variation in SS HR_Not in BR.R")$value
+br_w_as_model <- source(file = "BR Model - 2f JAGS Model Code - Kery and Schaub SS.R")$value
 
 
 ### Run Model ###
 #Call JAGS
-# BR_w_SPP_output <- jags(data = dat,
-#                         parameters.to.save = parameters.null,
-#                         inits = inits.null,
-#                         model.file = br_w_as_model,
-#                         n.iter = ni,
-#                         n.burnin = nb,
-#                         n.thin = nt,
-#                         n.chains = nc) 
-
-BR_w_SPP_output <- jags.parallel(data = dat,
+BR_w_SPP_output <- jags(data = dat,
                         parameters.to.save = parameters.null,
                         inits = inits.null,
                         model.file = br_w_as_model,
                         n.iter = ni,
                         n.burnin = nb,
                         n.thin = nt,
-                        n.chains = nc,
-                        export_obj_names = names_for_parallel) 
+                        n.chains = nc) 
 
-recompile(BR_w_SPP_output)
+BR_w_SPP_output
 
-BR_w_SPP_output.upd <- autojags(BR_w_SPP_output, n.update = 4, Rhat = 1.1, n.iter = 5000, n.thin = 1)
-
-
-
-write.csv(BR_w_SPP_output.upd$BUGSoutput$summary, file = "3c_output.csv")
+write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3c_output.csv")
 
 # autocorr.plot(wmdspecific_wmdsurv_output,ask=F,auto.layout = T)
 # 

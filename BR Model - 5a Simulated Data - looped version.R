@@ -3,17 +3,23 @@ require(sf)
 ###########################
 ### Data Specifications ###
 ###########################
+#Variable Parameters
+# nbandsites <- 3*30 # Number of Banding Capture Sites, must be multiple of 3 due to high/medium/low sampling code
+# psill.hr <- .001 #Amount of variation across landscape
+# hr.sc <- .1 #Range of spatial correlation
+# C = D = 5 #Number of regions = C*D
+
 # Set dimensions of study area and region boundaries, Study area = AxB square 
 A = 100
 B = 100
 
 # C*D = Total # Regions 
-C = 5
-D = 5
+# C = D = 5
+# D = 5
 
 #Capture Locations Locations
-nbandsites <- 3*50 # Number of Banding Capture Sites, must be multiple of 3 due to high/medium/low sampling code
-nbandind <- nbandsites * 6 #Number of individuals banded, #Assumed 1:1 adult to juvenile
+# nbandsites <- 3*30 # Number of Banding Capture Sites, must be multiple of 3 due to high/medium/low sampling code
+nbandind <- 600 #Number of individuals banded, #Assumed 1:1 adult to juvenile
 n.band.years <- 3 #banding seasons
 # Define Telemetry Data
 ntelemsites <- 3*15
@@ -25,10 +31,10 @@ visit.rate <- .95 #Probability of finding a bird in a given week, assuming it ha
 #Amount of spatial correlation in harvest rate and survival
 # Range = lower means more correlated over longer distances
 wsr.sc <- .2 #weekly survival rate
-hr.sc <- .1 #harvest rate
+# hr.sc <- .1 #harvest rate
 #The amount of variation across the landscape
 psill.wsr <- .02 #Max = 
-psill.hr <- .001 #Max = 
+# psill.hr <- .001 #Max = 
 #nuggest is half of psill so local variation is half of the total variation observed
 
 # Harvest Rate Regression Coefficients
@@ -52,10 +58,10 @@ nknot <- 10
 
 # Set Parameters for simulating Region Specific Abundance over time
 n.years.totharv <- 10 #Number of years of total harvest data
-max.N.J.1 <- 1000
-max.N.A.1 <- 1000
-min.N.J.1 <- 25
-min.N.A.1 <- 25
+max.N.J.1 <- 400
+max.N.A.1 <- 700
+min.N.J.1 <- 30
+min.N.A.1 <- 50
 mean.R <- 1.5 #average R around which WMD specific will be sampled
 sd.R <- .05
 
@@ -674,5 +680,9 @@ for(i in 1:nrow(r.matrix)){
 }
 
 
-
-  
+#How many Capture sites in each WMD
+# lengths(st_intersects(SA.grid, bandsiteselect))
+# ggplot() +
+#   geom_sf(data = SA.grid)+
+#   geom_sf_label(data = SA.grid, aes(label = RegionID))+
+#   geom_sf(data = bandsiteselect)
