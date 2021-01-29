@@ -4,10 +4,10 @@ source(file = "BR Model - 5 Simulated Data.R") # Simulated Data - Spatially Corr
 
 
 # #MCMC settings
-ni <- 3000 #number of iterations
+ni <- 10000 #number of iterations
 nt <- 8 #thinning
-nb <- 2000 #burn in period
-nc <- 3 #number of chains
+nb <- 5000 #burn in period
+nc <- 5 #number of chains
 
 #Run Current Model in JAGS and save output to CSV
 # source(file = "BR Model - 3 Execute JAGS.R") # Original, Do NOT Change

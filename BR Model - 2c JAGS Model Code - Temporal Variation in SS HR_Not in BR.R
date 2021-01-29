@@ -209,32 +209,28 @@ function(){#####################################################################
       # N.A[WMD.id[i],t+1] <- round(1+(totalS.A[WMD.id[i],t] * N.A[WMD.id[i],t]) + (totalS.J[WMD.id[i],t] * N.J[WMD.id[i],t])) #Issues initializing
       
       #Number of Birds recruited to the Juvenile population in t
-      # N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
-      # # meanY1[WMD.id[i],t] <- 10 + (R[WMD.id[i],t] * N.A[WMD.id[i],t]) #This was 11 when it ran well
-      # # meanY1[WMD.id[i],t] <- (R[WMD.id[i],t] * N.A[WMD.id[i],t])
-      # meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t]
-      
-      N.J[WMD.id[i],t+1] <- R[WMD.id[i],t] * N.A[WMD.id[i],t]
+      #Single Distribution of R for all WMDs and Years
+      # N.J[WMD.id[i],t+1] <- R[WMD.id[i],t] * N.A[WMD.id[i],t]
+      # log(R[WMD.id[i],t]) <- alpha.R[WMD.id[i],t]
+      # alpha.R[WMD.id[i],t] ~ dunif(-10,10)
+      N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
+      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t]
       log(R[WMD.id[i],t]) <- alpha.R[WMD.id[i],t]
       alpha.R[WMD.id[i],t] ~ dunif(-10,10)
       
-      # N.J[WMD.id[i],t+1] <- mean.R[WMD.id[i]] * N.A[WMD.id[i],t]
+      #Individual Distribution of R for each WMD but same R across years
+      # N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
+      # meanY1[WMD.id[i],t] <- mean.R[WMD.id[i]] * N.A[WMD.id[i],t]
       
       #Year Specific recruitment rate
       # R[WMD.id[i],t] ~ dlnorm(log(mean.R[WMD.id[i]]), tau.R)
       # R[WMD.id[i],t] ~ dlnorm(mean.R[WMD.id[i]], tau.R)
       # R[WMD.id[i],t] <- log(R.x[WMD.id[i],t])
       # R.x[WMD.id[i],t] ~ dnorm(mean.R[WMD.id[i]], tau.R[WMD.id[i]])
-      # R[WMD.id[i],t] ~ dunif(0.001, 3)
-
     }
-    
-    #Average Recruitment Rate, WMD specific
+    #Individual R for each WMD but same among years
     # alpha.R[WMD.id[i]] ~ dunif(-10,10)
     # log(mean.R[WMD.id[i]]) <- alpha.R[WMD.id[i]]
-    # tau.R[WMD.id[i]] <- pow(sigma.R[WMD.id[i]], -2)
-    # sigma.R[WMD.id[i]] ~ dunif(0,1000)
-    # R[WMD.id[i]] ~ dunif(0.001, 3)
   }
   # tau.R <- pow(sigma.R, -2) #for Logit-Normal distribution
   # sigma.R ~ dunif(0,10) #for Logit-Normal distribution
