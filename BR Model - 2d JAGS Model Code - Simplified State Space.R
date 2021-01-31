@@ -171,32 +171,13 @@ function(){#####################################################################
       J.alpha[WMD.id[i],t] ~ dunif(-10,10)
       log(lambda.N.J[WMD.id[i],t]) <- J.alpha[WMD.id[i],t]
       N.J[WMD.id[i],t] ~ dpois(lambda.N.J[WMD.id[i],t])
-
-      # #Annual Variation in Harvest Rate #Temporal Variation in HR
-      # l.WMD.HR.A[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A) #Temporal Variation in HR
-      # l.WMD.HR.J[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.J[WMD.id[i]]), tau.harv.J) #Temporal Variation in HR
-      #
-      # logit(WMD.HR.A[WMD.id[i],t]) <- l.WMD.HR.A[WMD.id[i],t] #Temporal Variation in HR
-      # logit(WMD.HR.J[WMD.id[i],t]) <- l.WMD.HR.J[WMD.id[i],t] #Temporal Variation in HR
     }
-
-    # Need to specify N[t=1], needs to be a whole number.
-    # th.year1 are just the harvest totals from year 1
-    # This assumes there is at least 10 turkeys in each WMD at the first timestep
-    # N.A[WMD.id[i],1] <- round(((5+(th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]]))) #Temporal Variation in HR
-    # N.J[WMD.id[i],1] <- round(((5+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])) #Temporal Variation in HR
-
-
-
-    # for(t in 1:(n.years-1)){
-    #   r[WMD.id[i],t] ~ dnorm(r.mean[WMD.id[i]], tau.r)
-    #   lambda[WMD.id[i],t] <- pow(2.71828,r[WMD.id[i],t])
-    #   N[WMD.id[i],t+1] <- (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])*lambda[WMD.id[i],t]
-    #   }
-    # r.mean[WMD.id[i]] ~ dnorm(0,tau.rmean)
+    
+    for(t in 1:(n.years-1)){
+      N.tot[WMD.id[i],t+1] <- (N.A[WMD.id[i],t] + N.J[WMD.id[i],t])*pow(2.718282, r[WMD.id[i],t])
+      r[WMD.id[i],t] ~ dunif(-10,10)
+    }
+    
+    N.tot[WMD.id[i],1] <- N.A[WMD.id[i],1] + N.J[WMD.id[i],1]
   }
-  # tau.rmean <- 1/(sigma.rmean * sigma.rmean)
-  # sigma.rmean ~ dunif(0,.5)
-  # tau.r <- 1/(sigma.r * sigma.r)
-  # sigma.r ~ dunif(0,.5)
 }

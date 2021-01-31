@@ -109,7 +109,9 @@ HR_spvar.points <- st_as_sf(HR_gaussian_field, coords = c("x","y"))
 # require(ggplot2)
 # ggplot()+  ## Initialize the ggplot layer
 #   geom_point(data=HR_gaussian_field,aes(x=x,y=y,col=HR.base))+ ## plot the observations as points with a colored yield gradient
-#   scale_colour_gradient(low="red",high="green")   ## Set the colors of the gradient
+#   scale_colour_gradient(low="red",high="green") +   ## Set the colors of the gradient
+#   geom_sf(data = bandsiteselect) +
+#   geom_sf(data = st_cast(SA.grid,"LINESTRING"))
 
 
 ## WEEKLY SURVIVAL RATE

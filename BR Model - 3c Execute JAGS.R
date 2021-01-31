@@ -204,7 +204,7 @@ inits.null <- function(){
        n.surv.A = n.surv.A.init,
        n.surv.J = n.surv.J.init,
        # N.J = N.J.init,
-       # N.A = N.A.init.c1,
+       N.A = N.A.init.c1,
        # mean.R = mean.r.init,
        alpha.R = alpha.r.init
        # R.x = R.x
@@ -224,7 +224,8 @@ names_for_parallel <- c("EH_raw",
                         "dat",
                         "parameters.null",
                         "inits.null", 
-                        "mr.init.z")
+                        "mr.init.z",
+                        "N.A.init.c1")
 # #MCMC settings
 # ni <- 5000 #number of iterations
 # nt <- 8 #thinning
@@ -256,13 +257,11 @@ BR_w_SPP_output <- jags.parallel(data = dat,
                         n.chains = nc,
                         export_obj_names = names_for_parallel) 
 
-recompile(BR_w_SPP_output)
+write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3c_output.csv")
 
-BR_w_SPP_output.upd <- autojags(BR_w_SPP_output, n.update = 4, Rhat = 1.1, n.iter = 5000, n.thin = 1)
-
-
-
-write.csv(BR_w_SPP_output.upd$BUGSoutput$summary, file = "3c_output.csv")
+# recompile(BR_w_SPP_output)
+# BR_w_SPP_output.upd <- autojags(BR_w_SPP_output, n.update = 4, Rhat = 1.1, n.iter = 5000, n.thin = 1)
+# write.csv(BR_w_SPP_output.upd$BUGSoutput$summary, file = "3c_output.csv")
 
 # autocorr.plot(wmdspecific_wmdsurv_output,ask=F,auto.layout = T)
 # 
