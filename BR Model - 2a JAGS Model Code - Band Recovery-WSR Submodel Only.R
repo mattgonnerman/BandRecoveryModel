@@ -34,11 +34,11 @@ function(){#####################################################################
     for(t in f[j]:n.occasions){
       #Survival Model
       logit(s.br[j,t]) <- intercept_s +
-        beta_A_s*br_age[j,t] + beta_S2W_s*br_s2w[j,t] + beta_wmd_s[br_wmd[j]]
+        beta_A_s*br_age_s[j,t] + beta_S2W_s*br_s2w[j,t] + beta_wmd_s[br_wmd[j]]
       #Band Recovery Model
       #Years Separate
       logit(hr.br[j,t]) <- intercept_hr + 
-        beta_A_hr*br_age[j,t] + beta_2019_hr*br_2019[j,t] + beta_2020_hr*br_2020[j,t] + 
+        beta_A_hr*br_age_hr[j,t] + beta_2019_hr*br_2019[t] + beta_2020_hr*br_2020[t] + 
         w.tilde[cap.site[j]] + e.cap[cap.site[j]]
       # #Combine years
       # logit(hr.br[j,t]) <- intercept_hr + beta_A_hr*br_age[j,t] + w.tilde[cap.site[j]] + e.cap[cap.site[j]]
@@ -107,14 +107,14 @@ function(){#####################################################################
   ##############################################################################################
   ### Derived Parameters - HR Combined Years ###
   #Capture Site specific harvest rates
-  for(i in 1:N.cap){
-    logit(HR.A.2018.cap[i]) <- intercept_hr + beta_A_hr + w.tilde[i] + e.cap[i]
-    logit(HR.J.2018.cap[i]) <- intercept_hr + w.tilde[i] + e.cap[i]
-    logit(HR.A.2019.cap[i]) <- intercept_hr + beta_A_hr + beta_2019_hr + w.tilde[i] + e.cap[i]
-    logit(HR.J.2019.cap[i]) <- intercept_hr + beta_2019_hr + w.tilde[i] + e.cap[i]
-    logit(HR.A.2020.cap[i]) <- intercept_hr + beta_A_hr + beta_2020_hr + w.tilde[i] + e.cap[i]
-    logit(HR.J.2020.cap[i]) <- intercept_hr + beta_2020_hr + w.tilde[i] + e.cap[i]
-  }
+  # for(i in 1:N.cap){
+  #   logit(HR.A.2018.cap[i]) <- intercept_hr + beta_A_hr + w.tilde[i] + e.cap[i]
+  #   logit(HR.J.2018.cap[i]) <- intercept_hr + w.tilde[i] + e.cap[i]
+  #   logit(HR.A.2019.cap[i]) <- intercept_hr + beta_A_hr + beta_2019_hr + w.tilde[i] + e.cap[i]
+  #   logit(HR.J.2019.cap[i]) <- intercept_hr + beta_2019_hr + w.tilde[i] + e.cap[i]
+  #   logit(HR.A.2020.cap[i]) <- intercept_hr + beta_A_hr + beta_2020_hr + w.tilde[i] + e.cap[i]
+  #   logit(HR.J.2020.cap[i]) <- intercept_hr + beta_2020_hr + w.tilde[i] + e.cap[i]
+  # }
 
   #Knot specific harvest rates
   for(i in 1:N.knot){

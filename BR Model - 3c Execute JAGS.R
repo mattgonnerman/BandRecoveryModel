@@ -39,7 +39,7 @@ dat <- list( succ = succ, #Adult Survival
              cap.site = ind.cap.site, #each individuals capture site as a numeric
              d.s.star=KnotLocalDis.mat/1000, #distance between spatial knots and cap sites
              d.s.star.star=KnotDis.mat/1000, #distance between spatial knots and other spatial knots
-             N.cap = length(unique(ind.cap.site)), #number of capture sites for SPP
+             N.cap = ifelse(simrun != "Y",length(unique(ind.cap.site)), max(ind.cap.site)),
              N.knot = nrow(KnotDis.mat), #number of knots for SPP
              N.wmd = nrow(WMD.matrix), #number of WMDs we are using in SPP
              WMD.matrix = WMD.matrix, #matrix showing which wmd a knot is in
@@ -192,7 +192,7 @@ if(simrun != "Y"){
   
   N.A.init.c1 <- N.A.init
   N.A.init.c1[,2:ncol(N.A.init)] <- NA
-  N.J.init[,1] <- NA
+
   
   R.x <- matrix(2.7, ncol = ncol(N.A.init)-1, nrow = nrow(N.A.init))
 }
@@ -203,7 +203,7 @@ inits.null <- function(){
   list(z = mr.init.z(EH_raw),
        n.surv.A = n.surv.A.init,
        n.surv.J = n.surv.J.init,
-       # N.J = N.J.init,
+       N.J = N.J.init,
        N.A = N.A.init.c1,
        # mean.R = mean.r.init,
        alpha.R = alpha.r.init
@@ -225,7 +225,8 @@ names_for_parallel <- c("EH_raw",
                         "parameters.null",
                         "inits.null", 
                         "mr.init.z",
-                        "N.A.init.c1")
+                        "N.A.init.c1",
+                        "N.J.init")
 # #MCMC settings
 # ni <- 5000 #number of iterations
 # nt <- 8 #thinning

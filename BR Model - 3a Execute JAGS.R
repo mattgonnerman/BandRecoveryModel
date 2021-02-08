@@ -17,7 +17,7 @@ dat <- list( succ = succ, #Adult Survival
              interval = interval, #Adult Survival
              nvisit = length(succ), #Adult Survival
              wsr_sex = wsr_sex, #Adult Survival
-             wsr_age = wsr_age, #Adult Survival
+             wsr_age = wsr_adult, #Adult Survival
              wsr_time = wsr_time, #Adult Survival
              wsr_wmd = wsr_wmd,
              y = EH_raw, #Band Recovery
@@ -26,7 +26,8 @@ dat <- list( succ = succ, #Adult Survival
              nind = dim(EH_raw)[1], #Band Recovery 
              n.occasions = dim(EH_raw)[2], #Band Recovery 
              z = known.state.mr(EH_raw), #Band Recovery
-             br_age = br_age, #Band Recovery
+             br_age_hr = br_adult_hr, #Band Recovery
+             br_age_s = br_adult_s, #Band Recovery
              br_2019 = br_2019, #Band Recovery
              br_2020 = br_2020, #Band Recovery
              br_s2w = br_s2w, #Band Recovery
@@ -35,10 +36,10 @@ dat <- list( succ = succ, #Adult Survival
              cap.site = ind.cap.site, #each individuals capture site as a numeric
              d.s.star=KnotLocalDis.mat/1000, #distance between spatial knots and cap sites
              d.s.star.star=KnotDis.mat/1000, #distance between spatial knots and other spatial knots
-             N.cap = length(unique(ind.cap.site)), #number of capture sites for SPP
+             N.cap = ifelse(simrun != "Y",length(unique(ind.cap.site)), max(ind.cap.site)), #number of capture sites for SPP
              N.knot = nrow(KnotDis.mat), #number of knots for SPP
              N.wmd = nrow(WMD.matrix), #number of WMDs we are using in SPP
-             WMD.matrix = WMD.matrix, #matrix showing which wmd a knot is in
+             WMD.matrix = WMD.matrix, #matrix showing which wmd a spatial knot is in
              WMD.vec = WMD.vec, #vector for referencing WMD.matrix
              WMD.id = sort(WMD.id) #vector to ID WMDs in SPP
 ) #for Harvest rate estimates
@@ -104,20 +105,41 @@ inits.null <- function(){
 # nb <- 3000 #burn in period
 # nc <- 3 #number of chains
 
+names_for_parallel <- c("EH_raw", 
+                        "nb", 
+                        "nt", 
+                        "nc",
+                        "ni",
+                        "br_w_as_model",
+                        "dat",
+                        "parameters.null",
+                        "inits.null", 
+                        "mr.init.z")
+
 #Model for JAGS
 br_w_as_model <- source(file = "BR Model - 2a JAGS Model Code - Band Recovery-WSR Submodel Only.R")$value
 
 
 ### Run Model ###
 #Call JAGS
-BR_w_SPP_output <- jags(data = dat,
-                        parameters.to.save = parameters.null,
-                        inits = inits.null,
-                        model.file = br_w_as_model,
-                        n.iter = ni,
-                        n.burnin = nb,
-                        n.thin = nt,
-                        n.chains = nc) 
+# BR_w_SPP_output <- jags(data = dat,
+#                         parameters.to.save = parameters.null,
+#                         inits = inits.null,
+#                         model.file = br_w_as_model,
+#                         n.iter = ni,
+#                         n.burnin = nb,
+#                         n.thin = nt,
+#                         n.chains = nc) 
+
+BR_w_SPP_output <- jags.parallel(data = dat,
+                                 parameters.to.save = parameters.null,
+                                 inits = inits.null,
+                                 model.file = br_w_as_model,
+                                 n.iter = ni,
+                                 n.burnin = nb,
+                                 n.thin = nt,
+                                 n.chains = nc,
+                                 export_obj_names = names_for_parallel) 
 
 BR_w_SPP_output
 

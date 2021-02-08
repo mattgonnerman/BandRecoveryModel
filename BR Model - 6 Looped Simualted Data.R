@@ -90,3 +90,32 @@ for(lr in 1:nrow(parameter.df)){
   }
 }
     
+
+
+
+
+#Loop to test code
+realvalues <- list()
+estvalues <- list()
+for(looprun in 1:20){
+  source(file = "BR Model - 5 Simulated Data.R")
+  # #MCMC settings
+  ni <- 15000 #number of iterations
+  nt <- 8 #thinning
+  nb <- 5000 #burn in period
+  nc <- 5 #number of chains
+  
+  #Run Current Model in JAGS and save output to CSV
+  # source(file = "BR Model - 3 Execute JAGS.R") # Original, Do NOT Change
+  # source(file = "BR Model - 3b Execute JAGS.R") # No Temporal Variation in HR
+  ### This is the current model I am favoring. Still have the initial drop in HR from year 1 to 2 no matter the input data
+  ### also still underestimating harvest rates compared to the nonState Space model.
+  source(file = "BR Model - 3a Execute JAGS.R")
+  
+  realvalues[[looprun]] <- Region_Mean_HR[,c(1,9:14)] %>%
+    mutate(RunID = looprun)
+  estvalues[[looprun]] <- as.data.frame(BR_w_SPP_output$BUGSoutput$summary) %>%
+    mutate(ID = rownames(BR_w_SPP_output$BUGSoutput$summary)) %>%
+    filter(grepl("WMD.HR.", ID)) %>%
+    mutate(Age = )
+}

@@ -13,7 +13,7 @@ D = 5
 
 #Capture Locations Locations
 nbandsites <- 3*50 # Number of Banding Capture Sites, must be multiple of 3 due to high/medium/low sampling code
-nbandind <- nbandsites * 6 #Number of individuals banded, #Assumed 1:1 adult to juvenile
+nbandind <- nbandsites * 10 #Number of individuals banded, #Assumed 1:1 adult to juvenile
 n.band.years <- 3 #banding seasons
 # Define Telemetry Data
 ntelemsites <- 3*15
@@ -32,21 +32,20 @@ psill.hr <- .001 #Max =
 #nuggest is half of psill so local variation is half of the total variation observed
 
 # Harvest Rate Regression Coefficients
-hr <- .11 #set weekly survival rate for simulation
+hr <- .25 #set weekly survival rate for simulation
 hr.b0 <- log(hr/(1-hr))
-hr.b.adult <- 1
+hr.b.juv <- -1
 hr.b.year2 <- -.1
 hr.b.year3 <- .1
 hr.error <- .00
-exp(hr.b0 + hr.b.adult + hr.b.year2)/(1+exp(hr.b0 + hr.b.adult + hr.b.year2))
 
 # Weekly Survival Rate Regression Coefficients
-wsr <- 0.975 #set weekly survival rate for simulation
+wsr <- 0.985 #set weekly survival rate for simulation
 wsr.b0 <- log(wsr/(1-wsr))
 wsr.b.f <- -.6
-wsr.b.adult <- .5
+wsr.b.juv <- -.5
 wsr.error <- 0.00
-# exp(wsr.b0 + wsr.b.adult)/(1+exp(wsr.b0 + wsr.b.adult))
+#exp(wsr.b0 + wsr.b.juv)/(1+exp(wsr.b0 + wsr.b.juv))
 
 #Determines the distance between spatial knots. Number of knots will be A/nknot X A/nknot
 nknot <- 10
@@ -177,14 +176,14 @@ TSites.spvar.sf <- st_join(telemsiteselect, BSites.spvar.sf, left = T)
 ###################################
 #Define Individuals at Capture
 #3 levels for number individuals caught at capture site
-probcap <- c(rep((3*.15/nbandsites), nbandsites/3), #Low
-             rep((3*.35/nbandsites), nbandsites/3), #Med
-             rep((3*.50/nbandsites), nbandsites/3)) #High
+# probcap <- c(rep((3*.15/nbandsites), nbandsites/3), #Low
+             # rep((3*.35/nbandsites), nbandsites/3), #Med
+             # rep((3*.50/nbandsites), nbandsites/3)) #High
 #Randomly assign individuals to Age, Year, and Capture Site
 hr.ind.cap <- data.frame( Ind.ID = 1:nbandind) %>%
-  mutate(Adult = sample(0:1, nbandind, replace = T)) %>% 
+  mutate(Age = sample(0:1, nbandind, replace = T)) %>%
   mutate(CapYear = sample(1:n.band.years, nbandind, replace = T)) %>%
-  mutate(CapSite = c(sample(1:nbandsites, nbandind, replace = T, prob = probcap)))
+  mutate(CapSite = rep(1:nbandsites, 10))
 #Retrieve associated spatial variation in HR
 for(i in 1:nbandind){
   hr.ind.cap$HR.SPP[i] <- BSites.spvar.sf$HR.SPP[hr.ind.cap$CapSite[i]]
@@ -199,16 +198,16 @@ hr.ind.coef <- hr.ind.cap %>%
   mutate(Year3 = ifelse(CapYear == 3, 1, 0)) %>%
   mutate(WSR.Error = rnorm(nbandind, 0, wsr.error)) %>%
   mutate(HR.Error = rnorm(nbandind, 0, hr.error)) %>%
-  mutate(WSRRegressionA = wsr.b0 + wsr.b.adult + WSR.SPP + WSR.Error) %>%
+  mutate(WSRRegressionA = wsr.b0 + WSR.SPP + WSR.Error) %>%
   mutate(WSRA = exp(WSRRegressionA)/(1+exp(WSRRegressionA))) %>%
-  mutate(WSRRegressionJ = wsr.b0 + WSR.SPP + WSR.Error) %>%
+  mutate(WSRRegressionJ = wsr.b0 + wsr.b.juv + WSR.SPP + WSR.Error) %>%
   mutate(WSRJ = exp(WSRRegressionJ)/(1+exp(WSRRegressionJ))) %>%
   mutate(SA_C2H = WSRA^11) %>%
   mutate(SA_H2C = WSRA^36) %>%
   mutate(SJ_C2H = WSRJ^11) %>%
   mutate(SJ_H2C = WSRJ^36) %>%
-  mutate(HRRegressionA = hr.b0 + hr.b.adult + HR.SPP + HR.Error) %>%
-  mutate(HRRegressionJ = hr.b0 + HR.SPP + HR.Error)
+  mutate(HRRegressionA = hr.b0 + HR.SPP + HR.Error) %>%
+  mutate(HRRegressionJ = hr.b0 + hr.b.juv + HR.SPP + HR.Error)
   
 BR.br <- matrix(NA, ncol = n.band.years, nrow = nbandind, byrow = F)
 BR.br[,1] <- exp(hr.ind.coef$HRRegressionA)/(1+exp(hr.ind.coef$HRRegressionA))
@@ -219,7 +218,7 @@ BR.br.J[,1] <- exp(hr.ind.coef$HRRegressionJ)/(1+exp(hr.ind.coef$HRRegressionJ))
 BR.br.J[,2] <- exp(hr.ind.coef$HRRegressionJ + hr.b.year2)/(1+exp(hr.ind.coef$HRRegressionJ + hr.b.year2))
 BR.br.J[,3] <- exp(hr.ind.coef$HRRegressionJ + hr.b.year3)/(1+exp(hr.ind.coef$HRRegressionJ + hr.b.year3))
 for(i in 1:nbandind){
-  if(hr.ind.coef$Adult[i] == 0){
+  if(hr.ind.coef$Age[i] == 1){
     for(j in 1:hr.ind.coef$CapYear[i]){
       BR.br[i,j] <- BR.br.J[i,j]
     }
@@ -228,34 +227,34 @@ for(i in 1:nbandind){
 
 
 S_H2C.br <- matrix(hr.ind.coef$SA_H2C, ncol = n.band.years, nrow = nbandind, byrow = F)
-### Commented out because all individuals are A after 1st hunting season
-# for(i in 1:nrow(S_H2C.br)){
-#   if(hr.ind.cap$Age[i] == 1){
-#     S_H2C.br[i,1:hr.ind.cap$CapYear[i]] <- hr.ind.coef$SJ_H2C[i]
-#   }
-# }
-
-S_C2H.br <- matrix(hr.ind.coef$SA_C2H, ncol = n.band.years, nrow = nbandind, byrow = F)
-for(i in 1:nrow(S_C2H.br)){
-  if(hr.ind.cap$Adult[i] == 0){
-    S_C2H.br[i,1:hr.ind.cap$CapYear[i]] <- hr.ind.coef$SJ_C2H[i]
+for(i in 1:nrow(S_H2C.br)){
+  if(hr.ind.cap$Age[i] == 1){
+    S_H2C.br[i,1:hr.ind.cap$CapYear[i]] <- hr.ind.coef$SJ_H2C[i]
   }
 }
 
+S_C2H.br <- matrix(hr.ind.coef$SA_C2H, ncol = n.band.years, nrow = nbandind, byrow = F)
+for(i in 1:nrow(S_C2H.br)){
+  if(hr.ind.cap$Age[i] == 1){
+    S_C2H.br[i,1:hr.ind.cap$CapYear[i]] <- hr.ind.coef$SJ_C2H[i]
+  }
+}
 yearofcap <- hr.ind.coef$CapYear
 
 # Define function to simulate Dead-Recovery data
 simul.br <- function(S_H2C.br, S_C2H.br, BR.br, nbandind, yearofcap){
   n.occasions <- 2*dim(S_H2C.br)[2]
-  true.S <- matrix(NA, ncol = n.occasions, nrow = nbandind)
-  EH <- matrix(0, ncol = n.occasions, nrow = nbandind)
+  true.S <- matrix(NA, ncol = n.occasions, nrow = sum(nbandind))
+  EH <- matrix(0, ncol = n.occasions, nrow = sum(nbandind))
   
   #Set initial live status
-  for(i in 1:nbandind){
+  for(i in 1:length(yearofcap)){
     true.S[i, (2*yearofcap[i])-1] <- 1    # record true live at the capture occasion
     EH[i, (2*yearofcap[i])-1] <- 1    # record live encounter at the capture occasion
-    
-    # Fill the EH matrix
+  }
+  
+  # Fill the EH matrix
+  for (i in 1:sum(nbandind)){
     for (t in (yearofcap[i]*2):n.occasions){
       ts1 <- rbinom(1, 1, S_C2H.br[i,ceiling(t/2)]) #does bird survive from Capture season to harvest
       harvest <- rbinom(1,1, BR.br[i,ceiling(t/2)]) #is bird Harvested
@@ -316,28 +315,19 @@ get.first <- function(x) min(which(x!=0))
 f <- apply(EH_raw, 1, get.first)
 
 #Matrix of Ages for JAGS
-#Because of how the model is setup, need a separate survival and harvest rate matrix
 #Need to have a column for each week observed and have the Age change depending on when they were caught. 
-br_adult_hr <- matrix(1, nrow = nbandind, ncol = 2*n.band.years)
-for(i in 1:nrow(br_adult_hr)){
-  if(hr.ind.cap$Adult[i] == 0){
-    br_adult_hr[i,1:(2*hr.ind.cap$CapYear[i])] <- 0
+br_age <- matrix(0, nrow = nbandind, ncol = 2*n.band.years)
+for(i in 1:nrow(br_age)){
+  if(hr.ind.cap$Age[i] == 1){
+    br_age[i,1:(2*hr.ind.cap$CapYear[i])] <- 1
   }
 }
-# br_adult_hr <- ifelse(br_adult_hr == 1, 0, 1) #This is because you stupidly coded the simulation so 1 is JUV but in the model 1 is Adult
-
-br_adult_s <- matrix(1, nrow = nbandind, ncol = 2*n.band.years)
-for(i in 1:nrow(br_adult_s)){
-  if(hr.ind.cap$Adult[i] == 0){
-    br_adult_s[i,1:((2*hr.ind.cap$CapYear[i])-1)] <- 0
-  }
-}
-# br_adult_s <- ifelse(br_adult_s == 1, 0, 1) #This is because you stupidly coded the simulation so 1 is JUV but in the model 1 is Adult
+br_age <- ifelse(br_age == 1, 0, 1)
 
 
 #Matrix for Year of Harvest for JAGS
-br_2019 <- c(0,0,1,1,0,0)
-br_2020 <- c(0,0,0,0,1,1)
+br_2019 <- matrix(c(0,0,1,1,0,0), ncol = n.band.years*2, nrow = nbandind, byrow =T)
+br_2020 <- matrix(c(0,0,0,0,1,1), ncol = n.band.years*2, nrow = nbandind, byrow =T)
 
 #Define z (latent state = true survival before harvest)
 #Define function to create a matrix with information about known latent state z
@@ -379,7 +369,7 @@ br.ind.wmd <- merge(hr.ind.cap, telemsite.region, by = "CapSite", all.x = T)
 br_wmd <- br.ind.wmd$RegionID
 
 #Create matrix to designate Season (S2W)
-br_s2w <- matrix(ncol = ncol(br_adult_hr), nrow = nrow(br_adult_hr))
+br_s2w <- matrix(ncol = ncol(br_age), nrow = nrow(br_age))
 odd <- seq(1, 2*n.band.years, 2)
 even <- seq(2, 2*n.band.years, 2)
 br_s2w[,odd] <- 0
@@ -396,7 +386,7 @@ probcap <- c(rep((3*.15/ntelemsites), ntelemsites/3), #Low
 
 WSR.ind.cap <- data.frame(ID = 1:ntelemind) %>%
   mutate(Sex = sample(0:1, ntelemind, replace = T, c(0.25, .75))) %>%
-  mutate(Adult = sample(0:1, ntelemind, replace = T)) %>%
+  mutate(Age = sample(0:1, ntelemind, replace = T)) %>%
   mutate(CapYear = sample(1:n.years.telem, ntelemind, replace = T)) %>%
   mutate(CapSite = sample(TSites.spvar.sf$SiteID, ntelemind, replace = T, prob = probcap))
 
@@ -409,8 +399,8 @@ for(i in 1:ntelemind){
 # Calculate WSR
 WSR.ind.coef <- WSR.ind.cap %>%
   mutate(ProcessError = rnorm(ntelemind,0, wsr.error)) %>%
-  mutate(RegressionJ = wsr.b0 + wsr.b.f*Sex + WSR.SPP + ProcessError) %>%
-  mutate(RegressionA = wsr.b0 + wsr.b.f*Sex + wsr.b.adult + WSR.SPP +ProcessError) %>%
+  mutate(RegressionJ = wsr.b0 + wsr.b.f*Sex + wsr.b.juv + WSR.SPP + ProcessError) %>%
+  mutate(RegressionA = wsr.b0 + wsr.b.f*Sex + WSR.SPP +ProcessError) %>%
   mutate(WSRJ = exp(RegressionJ)/(1+exp(RegressionJ))) %>%
   mutate(WSRA = exp(RegressionA)/(1+exp(RegressionA)))
 
@@ -419,8 +409,8 @@ Visit.wsr <- matrix(visit.rate, ncol = n.occasions.wsr, nrow = ntelemind)
 WSR.wsr <- matrix(WSR.ind.coef$WSRA, ncol = n.occasions.wsr, nrow = ntelemind, byrow = F)
 #Juveniles transition to Adults
 for(i in 1:ntelemind) {
-  if(WSR.ind.cap$Adult[i] == 0){
-    WSR.wsr[i,1:11] <- WSR.ind.coef$WSRJ[i]
+  if(WSR.ind.cap$Age[i] == 1){
+    WSR.wsr[i,1:52] <- WSR.ind.coef$WSRJ[i]
   }
 }
 
@@ -482,23 +472,24 @@ EH.wsr <- EH.wsr.1[,-c(1)]
 
 #Age Matrix for JAGS
 #Need to have a column for each week observed and have the Age change depending on when they were caught. 
-WSR.adult <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr)
-WSR.adult[,1] <- WSR.ind.cap$Adult
-for(i in 1:nrow(WSR.adult)){
-  if(WSR.adult[i,1] == 1){
-    WSR.adult[i,] <- 1
+WSR.age <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr)
+WSR.age[,1] <- WSR.ind.cap$Age
+for(i in 1:nrow(WSR.age)){
+  if(WSR.age[i,1] == 0){
+    WSR.age[i,] <- 0
   }else{
-    WSR.adult[i,1:11] <- 0
-    WSR.adult[i,12:ncol(WSR.adult)] <- 1
+    WSR.age[i,1:ncol(WSR.age)] <- 1
+    if(ncol(WSR.age)<52){
+      WSR.age[i,53:ncol(WSR.age)] <- 0
+    }
   }
 }
-WSR.adult[is.na(EH.wsr.1)] <- NA
-WSR.adult <- WSR.adult[,-c(1)]
-wsr_adult1 <- as.vector(t(WSR.adult))
-wsr_adult <- wsr_adult1[!is.na(wsr_adult1)]
+WSR.age[is.na(EH.wsr.1)] <- NA
+WSR.age <- WSR.age[,-c(1)]
+wsr_age1 <- as.vector(t(WSR.age))
+wsr_age <- wsr_age1[!is.na(wsr_age1)]
 
-# wsr_adult <- ifelse(wsr_adult == 1, 0, 1) #This is because you stupidly coded the simulation so 1 is JUV but in the model 1 is Adult
-
+wsr_age <- ifelse(wsr_age == 1, 0, 1)
 
 #Sex Vector for JAGS
 WSR.sex <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr)
@@ -658,7 +649,7 @@ Region_Mean_WSR <- st_drop_geometry(st_join(WSR_spvar.points, SA.grid, st_inters
 
 Region_Means <- merge(Region_Mean_HR, Region_Mean_WSR, by = "RegionID") %>%
   mutate(Annual.S.A = (1-Mean.HR.A)*(Mean.WSR.A^47)) %>%
-  mutate(Annual.S.J = (1-Mean.HR.J)*(Mean.WSR.A^47))
+  mutate(Annual.S.J = (1-Mean.HR.J)*(Mean.WSR.J^47))
 
 #Create Total Harvest Matrices
 N.A <- matrix(NA, nrow = C*D, ncol = n.years.totharv)

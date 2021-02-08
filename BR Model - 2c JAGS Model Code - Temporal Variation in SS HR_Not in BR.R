@@ -134,9 +134,9 @@ function(){#####################################################################
   S_M_J_W2S <- pow(mean(WSR_M_J_W2S[sampledwmd]), 11)
   S_M_A_W2S <- pow(mean(WSR_M_A_W2S[sampledwmd]), 11)
   
-  #Average Non Harvest Survival
-  mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W
-  mean.AnnualS.J <- S_M_J_W2S * S_M_J_S2W
+  # #Average Non Harvest Survival
+  # mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W
+  # mean.AnnualS.J <- S_M_J_W2S * S_M_J_S2W
   
   ##############################################################################################
   ### State-Space Abundance ###
@@ -190,8 +190,8 @@ function(){#####################################################################
     #This assumes there is at least 10 turkeys in each WMD at the first timestep
     # N.A[WMD.id[i],1] <- round(((1+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]]))
     # N.J[WMD.id[i],1] <- round(((1+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]]))
-    N.A[WMD.id[i],1] ~ dpois((round(((10+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]])))) #Temporal Variation in HR
-    N.J[WMD.id[i],1] ~ dpois((round(((10+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]])))) #Temporal Variation in HR
+    N.A[WMD.id[i],1] ~ dpois((10+th.year1.A[WMD.id[i]])/mean.WMD.HR.A[WMD.id[i]]) #Temporal Variation in HR
+    N.J[WMD.id[i],1] ~ dpois((10+th.year1.J[WMD.id[i]])/mean.WMD.HR.J[WMD.id[i]]) #Temporal Variation in HR
     
     for(t in 1:(n.years-1)){
       # Number of birds to A to surive OR J that transition into A from t to t+1
@@ -205,7 +205,7 @@ function(){#####################################################################
       # log(R[WMD.id[i],t]) <- alpha.R[WMD.id[i],t]
       # alpha.R[WMD.id[i],t] ~ dunif(-10,10)
       N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
-      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t]
+      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t] * S_M_J_W2S
       log(R[WMD.id[i],t]) <- alpha.R[WMD.id[i],t]
       alpha.R[WMD.id[i],t] ~ dunif(-10,10)
     }
