@@ -20,6 +20,7 @@ dat <- list( succ = succ, #Adult Survival
              wsr_age = wsr_adult, #Adult Survival
              wsr_time = wsr_time, #Adult Survival
              wsr_wmd = wsr_wmd,
+             
              y = EH_raw, #Band Recovery
              f = f, #Band Recovery
              weeks2harv = weeks2harv,#BandRecovery
@@ -32,6 +33,7 @@ dat <- list( succ = succ, #Adult Survival
              br_2020 = br_2020, #Band Recovery
              br_s2w = br_s2w, #Band Recovery
              br_wmd = br_wmd,
+             
              sampledwmd = sampledwmd, #list of wmd's where we sampled
              cap.site = ind.cap.site, #each individuals capture site as a numeric
              d.s.star=KnotLocalDis.mat/1000, #distance between spatial knots and cap sites

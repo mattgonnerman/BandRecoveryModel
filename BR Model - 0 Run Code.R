@@ -26,6 +26,8 @@ source(file = "BR Model - 3c Execute JAGS.R") # Temporal Variation in HR within 
 #Return Estimated values
 source(file = "BR Model - 4 Examine Model Output.R")
 
+#Run multiple simulations and compare to realized harvest
+source(file = "BR Model - 4 Bias Check through simulations.R")
 
 #Loop Simulation and Save outputs in new dataframe
 source(file = "BR Model - 6 Looped Simulated Data.R")

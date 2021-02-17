@@ -13,7 +13,7 @@ D = 5
 
 #Capture Locations Locations
 nbandsites <- 3*50 # Number of Banding Capture Sites, must be multiple of 3 due to high/medium/low sampling code
-nbandind <- nbandsites * 6 #Number of individuals banded, #Assumed 1:1 adult to juvenile
+nbandind <- nbandsites * 10 #Number of individuals banded, #Assumed 1:1 adult to juvenile
 n.band.years <- 3 #banding seasons
 # Define Telemetry Data
 ntelemsites <- 3*15
@@ -28,15 +28,15 @@ wsr.sc <- .2 #weekly survival rate
 hr.sc <- .1 #harvest rate
 #The amount of variation across the landscape
 psill.wsr <- .02 #Max = 
-psill.hr <- .001 #Max = 
+psill.hr <- .002 #Max = 
 #nuggest is half of psill so local variation is half of the total variation observed
 
 # Harvest Rate Regression Coefficients
 hr <- .11 #set weekly survival rate for simulation
 hr.b0 <- log(hr/(1-hr))
 hr.b.adult <- 1
-hr.b.year2 <- -.1
-hr.b.year3 <- .1
+hr.b.year2 <- 0
+hr.b.year3 <- 0
 hr.error <- .00
 exp(hr.b0 + hr.b.adult + hr.b.year2)/(1+exp(hr.b0 + hr.b.adult + hr.b.year2))
 
@@ -262,17 +262,17 @@ simul.br <- function(S_H2C.br, S_C2H.br, BR.br, nbandind, yearofcap){
       ts2 <- rbinom(1, 1, S_H2C.br[i,ceiling(t/2)]) #does bird survive from harvest to capture season
       
       if(t %% 2 == 0){ #If a hunting occassion
-        if(true.S[i,t-1] == 0){ # Bird dead in last occasion
+        if(true.S[i,t-1] == 0){ # Bird dead at beginning of previous last occasion
           true.S[i,t] == 0
           break
         }
         
-        if(true.S[i,t-1] == 1){ #Bird Alive in last occasion
-          if(ts1 == 0){ #Bird dies before hunting season
+        if(true.S[i,t-1] == 1){ #Bird Alive at beginning of previous occasion
+          if(ts1 == 0){ #Bird dies before start of hunting season
             true.S[i,t] <- 0 #record death
             break
           }
-          if(ts1 == 1){ #Bird survives to hunting seasons
+          if(ts1 == 1){ #Bird survives from capture to start of hunting season
             if(harvest==1){ #Bird harvested
               true.S[i,t] <- 0 #record death
               EH[i,t] <- 1 # Record Harvest
@@ -286,12 +286,12 @@ simul.br <- function(S_H2C.br, S_C2H.br, BR.br, nbandind, yearofcap){
       }
       
       if(t %% 2 != 0){ #if a capture occassion
-        if(true.S[i,t-1] == 0){ # Bird dead in last occasion
+        if(true.S[i,t-1] == 0){ # Bird dead at beginning of previous last occasion
           true.S[i,t] == 0
           break
         }
         
-        if(true.S[i,t-1] == 1){ #Bird Alive in last occasion
+        if(true.S[i,t-1] == 1){ #Bird Alive at beginning of previous occasion
           if(ts2 == 0){ #Bird dies before capture season
             true.S[i,t] <- 0 #record death
             break
@@ -305,11 +305,39 @@ simul.br <- function(S_H2C.br, S_C2H.br, BR.br, nbandind, yearofcap){
     }
   }
   
-  return(EH)
+  EH.list <- list(EH, true.S)
+  
+  return(EH.list)
+  
 }
 
 # Execute function
-EH_raw <- simul.br(S_H2C.br, S_C2H.br, BR.br, nbandind, yearofcap)
+EH_list <- simul.br(S_H2C.br, S_C2H.br, BR.br, nbandind, yearofcap)
+EH_raw <- EH_list[[1]]
+
+# Calculate Realized Harvest Rates
+# EH.check <- EH_list[[1]][,seq(2,(n.band.years*2),2)]
+# true.S.check <- EH_list[[2]][,seq(2,(n.band.years*2),2)]
+# Age.check <- br_adult_hr[,seq(2,(n.band.years*2),2)]
+# EH.check.adult <- matrix(NA, nrow = nbandind, ncol = n.band.years)
+# EH.check.juv <- matrix(NA, nrow = nbandind, ncol = n.band.years)
+# S.check.adult <- matrix(NA, nrow = nbandind, ncol = n.band.years)
+# S.check.juv <- matrix(NA, nrow = nbandind, ncol = n.band.years)
+# for(checki in 1:nbandind){
+#   for(checkj in 1:n.band.years){
+#     if(Age.check[checki, checkj] == 1){EH.check.adult[checki, checkj] <- EH.check[checki, checkj]}
+#     if(Age.check[checki, checkj] == 0){EH.check.juv[checki, checkj] <- EH.check[checki, checkj]}
+#     if(Age.check[checki, checkj] == 1){S.check.adult[checki, checkj] <- true.S.check[checki, checkj]}
+#     if(Age.check[checki, checkj] == 0){S.check.juv[checki, checkj] <- true.S.check[checki, checkj]}
+#   }
+# }
+# totalavail.Adult <- colSums(S.check.adult, na.rm = T) + colSums(EH.check.adult, na.rm = T)
+# totalavail.Juv <- colSums(S.check.juv, na.rm = T) + colSums(EH.check.juv, na.rm = T)
+# true.hr.adult <- colSums(EH.check.adult, na.rm = T)/totalavail.Adult
+# true.hr.juv <- colSums(EH.check.juv, na.rm = T)/totalavail.Juv
+# true.hr.means <- c(true.hr.adult,true.hr.juv)
+# testcheck <- true.hr.means
+
 
 #Create vector with occasion of marking
 get.first <- function(x) min(which(x!=0))
@@ -384,6 +412,8 @@ odd <- seq(1, 2*n.band.years, 2)
 even <- seq(2, 2*n.band.years, 2)
 br_s2w[,odd] <- 0
 br_s2w[,even] <- 1
+
+
 
 #########################################
 ### Simulate Weekly Surival Rate Data ###
@@ -482,14 +512,11 @@ EH.wsr <- EH.wsr.1[,-c(1)]
 
 #Age Matrix for JAGS
 #Need to have a column for each week observed and have the Age change depending on when they were caught. 
-WSR.adult <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr)
+WSR.adult <- matrix(1, nrow = ntelemind, ncol = n.occasions.wsr)
 WSR.adult[,1] <- WSR.ind.cap$Adult
 for(i in 1:nrow(WSR.adult)){
-  if(WSR.adult[i,1] == 1){
-    WSR.adult[i,] <- 1
-  }else{
+  if(WSR.adult[i,1] != 1){
     WSR.adult[i,1:11] <- 0
-    WSR.adult[i,12:ncol(WSR.adult)] <- 1
   }
 }
 WSR.adult[is.na(EH.wsr.1)] <- NA
@@ -633,12 +660,12 @@ sampledwmd <- sort(unique(c(wsr_wmd, br_wmd)))
 Region_Mean_HR <- st_drop_geometry(st_join(HR_spvar.points, SA.grid, st_intersects, left = T)) %>%
   group_by(RegionID) %>%
   summarize(HR.SPP = mean(HR.SPP)) %>%
-  mutate(REG.HR.J.1 = hr.b0 + hr.b.juv + HR.SPP) %>%
-  mutate(REG.HR.J.2 = hr.b0 + hr.b.juv + hr.b.year2 + HR.SPP) %>%
-  mutate(REG.HR.J.3 = hr.b0 + hr.b.juv + hr.b.year3 + HR.SPP) %>%
-  mutate(REG.HR.A.1 = hr.b0 + HR.SPP) %>%
-  mutate(REG.HR.A.2 = hr.b0 + hr.b.year2 + HR.SPP) %>%
-  mutate(REG.HR.A.3 = hr.b0 + hr.b.year3 + HR.SPP) %>%
+  mutate(REG.HR.J.1 = hr.b0 + HR.SPP) %>%
+  mutate(REG.HR.J.2 = hr.b0 + hr.b.year2 + HR.SPP) %>%
+  mutate(REG.HR.J.3 = hr.b0 + hr.b.year3 + HR.SPP) %>%
+  mutate(REG.HR.A.1 = hr.b0 + hr.b.adult + HR.SPP) %>%
+  mutate(REG.HR.A.2 = hr.b0 + hr.b.adult + hr.b.year2 + HR.SPP) %>%
+  mutate(REG.HR.A.3 = hr.b0 + hr.b.adult + hr.b.year3 + HR.SPP) %>%
   mutate(HR.J.1 = exp(REG.HR.J.1)/(1+exp(REG.HR.J.1))) %>%
   mutate(HR.J.2 = exp(REG.HR.J.2)/(1+exp(REG.HR.J.2))) %>%
   mutate(HR.J.3 = exp(REG.HR.J.3)/(1+exp(REG.HR.J.3))) %>%
@@ -651,8 +678,8 @@ Region_Mean_HR <- st_drop_geometry(st_join(HR_spvar.points, SA.grid, st_intersec
 Region_Mean_WSR <- st_drop_geometry(st_join(WSR_spvar.points, SA.grid, st_intersects, left = T)) %>%
   group_by(RegionID) %>%
   summarize(WSR.SPP = mean(WSR.SPP)) %>%
-  mutate(REG.WSR.J = wsr.b0 + wsr.b.juv + WSR.SPP) %>%
-  mutate(REG.WSR.A = wsr.b0 + WSR.SPP) %>%
+  mutate(REG.WSR.J = wsr.b0 + WSR.SPP) %>%
+  mutate(REG.WSR.A = wsr.b0 + wsr.b.adult + WSR.SPP) %>%
   mutate(Mean.WSR.J = exp(REG.WSR.J)/(1+exp(REG.WSR.J))) %>%
   mutate(Mean.WSR.A = exp(REG.WSR.A)/(1+exp(REG.WSR.A)))
 
