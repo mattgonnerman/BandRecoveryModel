@@ -144,7 +144,7 @@ function(){#####################################################################
   ### Period Specific Survival
   for(i in sampledwmd){
     cloglog(m_M_J_S2W[i]) <- intercept_m + beta_S2W_m + beta_wmd_m[i]
-    cloglog(m_M_A_S2W[i]) <- intercept_m + beta_A_m + beta_S2W_s + beta_wmd_m[i]
+    cloglog(m_M_A_S2W[i]) <- intercept_m + beta_A_m + beta_S2W_m + beta_wmd_m[i]
     cloglog(m_M_J_W2S[i]) <- intercept_m + beta_wmd_m[i]
     cloglog(m_M_A_W2S[i]) <- intercept_m + beta_A_m + beta_wmd_m[i]
     
