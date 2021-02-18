@@ -2,7 +2,7 @@
 function(){##############################################################################################
   # ### Weekly Survival Rate ###
   alpha_m ~ dbeta(1,1)
-  intercept_m <- cloglog(alpha_s)
+  intercept_m <- cloglog(alpha_m)
   beta_F_m ~ dnorm(0,.01) #Effect of sex on WSR (Male reference)
   beta_A_m ~ dnorm(0,.01) #Effect of age on WSR (Juv reference)
   beta_A_F_m ~ dnorm(0,.01) #Interaction term for Age/Sex(Male Juv reference)
