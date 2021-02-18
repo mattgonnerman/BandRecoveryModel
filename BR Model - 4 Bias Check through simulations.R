@@ -8,7 +8,7 @@ source(file = "BR Model - 5 Simulated Data.R")
 
 ###Checking for bias in the BR/WSR only model
 #How many simulations do you want to do?
-numsims <- 15 
+numsims <- 1
 #Loop to test code
 realized.hr <- matrix(NA, nrow = numsims, ncol = n.band.years*2)
 mean.est.values <- matrix(NA, nrow = numsims, ncol = n.band.years*2)
@@ -49,8 +49,9 @@ for(looprun in 1:numsims){
   nc <- 5 #number of chains
   
   #Run JAGS model
-  source(file = "BR Model - 3a Execute JAGS.R")
-
+  # source(file = "BR Model - 3a Execute JAGS.R")
+  source(file = "BR Model - 3g Execute JAGS.R")
+  
   #Save HR estimates
   estvalues[[looprun]] <- as.data.frame(BR_w_SPP_output$BUGSoutput$summary) %>%
     mutate(ID = rownames(BR_w_SPP_output$BUGSoutput$summary)) %>%

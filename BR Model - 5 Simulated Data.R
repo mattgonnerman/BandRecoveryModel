@@ -445,7 +445,7 @@ WSR.ind.coef <- WSR.ind.cap %>%
   mutate(WSRA = exp(RegressionA)/(1+exp(RegressionA)))
 
 # Define matrices with survival and location probabilities
-Visit.wsr <- matrix(visit.rate, ncol = n.occasions.wsr, nrow = ntelemind)
+# Visit.wsr <- matrix(visit.rate, ncol = n.occasions.wsr, nrow = ntelemind)
 WSR.wsr <- matrix(WSR.ind.coef$WSRA, ncol = n.occasions.wsr, nrow = ntelemind, byrow = F)
 #Juveniles transition to Adults
 for(i in 1:ntelemind) {
@@ -468,7 +468,7 @@ simul.wsr <- function(WSR.wsr, Visit.wsr, ntelemind){
   for (i in 1:ntelemind){
     for (t in 2:n.occasions){
       ts <- rbinom(1, 1, WSR.wsr[i,t-1]) #does bird survive from last occassion
-      find <- rbinom(1,1, Visit.wsr[i,t]) #is bird found this occasion
+      find <- rbinom(1,1, visit.rate) #is bird found this occasion
       
       if(true.S[i,t-1] == 1){ #If the bird was alive at previous occassion
         if(ts == 1){ #Bird Survived to current occassion
@@ -516,7 +516,7 @@ WSR.adult <- matrix(1, nrow = ntelemind, ncol = n.occasions.wsr)
 WSR.adult[,1] <- WSR.ind.cap$Adult
 for(i in 1:nrow(WSR.adult)){
   if(WSR.adult[i,1] != 1){
-    WSR.adult[i,1:11] <- 0
+    WSR.adult[i,1:12] <- 0
   }
 }
 WSR.adult[is.na(EH.wsr.1)] <- NA
