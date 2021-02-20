@@ -4,25 +4,31 @@ require(tidyr)
 require(miscTools)
 require(ggplot2)
 
-source(file = "BR Model - 5 Simulated Data.R")
+# source(file = "BR Model - 5 Simulated Data.R")
+source(file = "BR Model - 5c Simulated Data.R")
 
 ###Checking for bias in the BR/WSR only model
 #How many simulations do you want to do?
-numsims <- 1
+numsims <- 10
 #Loop to test code
 realized.hr <- matrix(NA, nrow = numsims, ncol = n.band.years*2)
 mean.est.values <- matrix(NA, nrow = numsims, ncol = n.band.years*2)
+mean.est.WSR <- matrix(NA, nrow = numsims, ncol = 2)
+mean.real.WSR.wsr <- matrix(NA, nrow = numsims, ncol = 2)
+mean.real.WSR.br <- matrix(NA, nrow = numsims, ncol = 2)
+mean.real.WSR <- matrix(NA, nrow = numsims, ncol = 2)
 estvalues <- list()
 runlengths <- c()
 nchains <- c()
 time1 <- Sys.time()
 for(looprun in 1:numsims){
   #Simulate Data
-  source(file = "BR Model - 5 Simulated Data.R")
-
+  # source(file = "BR Model - 5 Simulated Data.R")
+  source(file = "BR Model - 5c Simulated Data.R")
+  
   # Calculate Realized Harvest Rates
-  EH.check <- EH_list[[1]][,seq(2,(n.band.years*2),2)]
-  true.S.check <- EH_list[[2]][,seq(2,(n.band.years*2),2)]
+  EH.check <- EH_list_br[[1]][,seq(2,(n.band.years*2),2)]
+  true.S.check <- EH_list_br[[2]][,seq(2,(n.band.years*2),2)]
   Age.check <- br_adult_hr[,seq(2,(n.band.years*2),2)]
   EH.check.adult <- matrix(NA, nrow = nbandind, ncol = n.band.years)
   EH.check.juv <- matrix(NA, nrow = nbandind, ncol = n.band.years)
@@ -42,7 +48,69 @@ for(looprun in 1:numsims){
   true.hr.juv <- colSums(EH.check.juv, na.rm = T)/totalavail.Juv
   realized.hr[looprun,] <- c(true.hr.adult,true.hr.juv)
   
-  # #MCMC settings
+  
+  #Realized WSR from BR Data
+  true.S.br.check <- EH_list_br[[2]]
+  EH.br.check <- EH_list_br[[1]]
+  EH.br.check.adult <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
+  EH.br.check.juv <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
+  S.br.check.adult <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
+  S.br.check.juv <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
+  for(checki in 1:nbandind){
+    for(checkj in 1:(n.band.years*2)){
+      if(br_adult_hr[checki, checkj] == 1){EH.br.check.adult[checki, checkj] <- EH.br.check[checki, checkj]}
+      if(br_adult_hr[checki, checkj] == 0){EH.br.check.juv[checki, checkj] <- EH.br.check[checki, checkj]}
+      if(br_adult_hr[checki, checkj] == 1){S.br.check.adult[checki, checkj] <- true.S.br.check[checki, checkj]}
+      if(br_adult_hr[checki, checkj] == 0){S.br.check.juv[checki, checkj] <- true.S.br.check[checki, checkj]}
+    }
+  }
+  EH.br.W2S.check.adult <- EH.br.check.adult
+  EH.br.W2S.check.adult[,seq(1,(n.band.years*2),2)] <- 0
+  W2S.br.A.totals <- colSums(S.br.check.adult + EH.br.W2S.check.adult, na.rm = T)
+  realized.WSR.br.A.W2S <- (W2S.br.A.totals[seq(2,(n.band.years*2),2)]/W2S.br.A.totals[seq(1,(n.band.years*2),2)])^(1/11)
+
+  EH.br.W2S.check.juv <- EH.br.check.juv
+  EH.br.W2S.check.juv[,seq(1,(n.band.years*2),2)] <- 0
+  W2S.br.J.totals <- colSums(S.br.check.juv + EH.br.W2S.check.juv, na.rm = T)
+  realized.WSR.br.J.W2S <- (W2S.br.J.totals[seq(2,(n.band.years*2),2)]/W2S.br.J.totals[seq(1,(n.band.years*2),2)])^(1/11)
+  mean.real.WSR.br[looprun,2] <- mean(realized.WSR.br.J.W2S)
+  
+  EH.br.S2W.check.adult <- EH.br.check.adult
+  EH.br.S2W.check.adult[,seq(4,(n.band.years*2),2)] <- 0
+  W2S.br.Aalive <- colSums(S.br.check.adult, na.rm = T)[seq(2,(n.band.years*2),2)]
+  W2S.br.Jalive <- colSums(S.br.check.juv, na.rm = T)[seq(2,(n.band.years*2),2)]
+  W2S.br.AendH <- W2S.br.Aalive + W2S.br.Aalive
+  W2S.br.AaliveC <- colSums(S.br.check.adult, na.rm = T)[seq(1,(n.band.years*2),2)]
+  W2S.br.Acap <- colSums(EH.br.check.adult, na.rm = T)[seq(1,(n.band.years*2),2)]
+  W2S.br.AstartC <- W2S.br.AaliveC - W2S.br.Acap
+  realized.WSR.br.A.S2W <- (W2S.br.AstartC[2:n.band.years]/W2S.br.AaliveC[1:(n.band.years-1)])^(1/36)
+  mean.real.WSR.br[looprun,1] <- mean(c(realized.WSR.br.A.S2W,realized.WSR.br.A.W2S))
+  
+  
+  #Realized WSR from WSR Data
+  true.WSR.check <- EH.wsr.list[[2]]
+  true.WSR.A.check <- matrix(NA, nrow = nbandind, ncol = n.occasions.wsr-1)
+  true.WSR.J.check <- matrix(NA, nrow = nbandind, ncol = n.occasions.wsr-1)
+  for(checki in 1:nrow(WSR.adult)){
+    for(checkj in 1:ncol(WSR.adult)){
+      if(WSR.adult1[checki, checkj] == 1){true.WSR.A.check[checki, checkj] <- true.WSR.check[checki, checkj]}
+      if(WSR.adult1[checki, checkj] == 0){true.WSR.J.check[checki, checkj] <- true.WSR.check[checki, checkj]}
+      if(WSR.sex1[checki, checkj] == 1){true.WSR.A.check[checki, checkj] <- NA}
+      if(WSR.sex1[checki, checkj] == 1){true.WSR.J.check[checki, checkj] <- NA}
+    }
+  }
+
+  true.wsr.A.1 <- colSums(true.WSR.A.check[,1:(ncol(true.WSR.A.check)-1)], na.rm = T)
+  true.wsr.A.2 <- colSums(true.WSR.A.check[,2:(ncol(true.WSR.A.check))], na.rm = T)
+  mean.real.WSR.wsr[looprun,1] <- sum((true.wsr.A.2/true.wsr.A.1)*(true.wsr.A.1/sum(true.wsr.A.1)), na.rm = T)
+  true.wsr.J.1 <- colSums(true.WSR.J.check[,1:(ncol(true.WSR.J.check)-1)], na.rm = T)[1:11]
+  true.wsr.J.2 <- colSums(true.WSR.J.check[,2:(ncol(true.WSR.J.check))], na.rm = T)[1:11]
+  mean.real.WSR.wsr[looprun,2] <- sum((true.wsr.J.2/true.wsr.J.1)*(true.wsr.J.1/sum(true.wsr.J.1)), na.rm = T)
+  mean.real.WSR[looprun,1] <- mean(c(mean.real.WSR.wsr[looprun,1], mean.real.WSR.br[looprun,1]))
+  mean.real.WSR[looprun,2] <- mean(c(mean.real.WSR.wsr[looprun,2], mean.real.WSR.br[looprun,2]))
+
+  ###Run JAGS Code
+  #MCMC settings
   ni <- 10000 #number of iterations
   nt <- 8 #thinning
   nb <- 5000 #burn in period
@@ -56,29 +124,37 @@ for(looprun in 1:numsims){
   estvalues[[looprun]] <- as.data.frame(BR_w_SPP_output$BUGSoutput$summary) %>%
     mutate(ID = rownames(BR_w_SPP_output$BUGSoutput$summary)) %>%
     filter(grepl("WMD.HR.", ID)) %>%
-    mutate(Year = str_extract(ID, "[:digit:]+")) %>%
-    mutate(WMD = str_extract(ID, "(?<=\\[).*?(?=\\])")) %>%
+    mutate(WMD = str_extract(ID, "(?<=\\[).*?(?=\\,)")) %>%
+    mutate(Year = as.numeric(str_extract(ID, "(?<=\\,).*?(?=\\])"))) %>%
     mutate(Age = substr(ID,8,8)) %>%
     dplyr::select(mean, Year, WMD, Age) %>%
     pivot_wider(names_from = c(Age, Year), values_from = c(mean), names_sort = T) %>%
     mutate(RunID = looprun)
   mean.est.values[looprun,] <- colMeans(estvalues[[looprun]][,2:((n.band.years*2)+1)])
 
-  
+  #Save WSR estimates
+  est.WSR <- as.data.frame(BR_w_SPP_output$BUGSoutput$summary) %>%
+    mutate(ID = rownames(BR_w_SPP_output$BUGSoutput$summary)) %>%
+    filter(grepl("WSR_M_", ID)) %>%
+    mutate(WMD = str_extract(ID, "(?<=\\[).*?(?=\\])")) %>%
+    mutate(Age = substr(ID,7,7)) %>%
+    dplyr::select(mean, WMD, Age) %>%
+    group_by(Age) %>%
+    summarize(Mean.WSR = mean(mean))
+  mean.est.WSR[looprun,] <- est.WSR$Mean.WSR
   
   print(looprun)
   print(Sys.time())
 }
 meanbias.hr <- colMeans(realized.hr-mean.est.values, na.rm = T)
+sdbias.hr <- apply(realized.hr-mean.est.values, 2, sd, na.rm = T)
 bias.hr <- realized.hr[1:(looprun),]-mean.est.values[1:(looprun),]
+bias.wsr <- mean.real.WSR - mean.est.WSR 
+meanbias.wsr <- colMeans(bias.wsr, na.rm = T)
+sdbias.wsr <- apply(mean.real.WSR - mean.est.WSR, 2, sd, na.rm = T)
 # 
 # View(realized.hr[1:(looprun-1),])
 # View(mean.est.values[1:(looprun-1),])
-
-
-
-
-
 
 
 

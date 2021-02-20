@@ -13,13 +13,14 @@ D = 5
 
 #Capture Locations Locations
 nbandsites <- 3*50 # Number of Banding Capture Sites, must be multiple of 3 due to high/medium/low sampling code
-nbandind <- nbandsites * 10 #Number of individuals banded, #Assumed 1:1 adult to juvenile
-n.band.years <- 3 #banding seasons
+n.band.years <- 10 #banding seasons
+nbandind <- nbandsites * n.band.years * 2 #Number of individuals banded, #Assumed 1:1 adult to juvenile
+
 # Define Telemetry Data
 ntelemsites <- 3*15
-n.years.telem <- n.band.years
+n.years.telem <- 5
 n.occasions.wsr <- 52*n.years.telem # Maximum Exposure Length
-ntelemind <- 200    # Annual number of newly marked individuals
+ntelemind <- n.years.telem*50    # Annual number of newly marked individuals
 visit.rate <- .95 #Probability of finding a bird in a given week, assuming it hasn't been found dead yet
 
 #Amount of spatial correlation in harvest rate and survival
@@ -35,10 +36,12 @@ psill.hr <- .002 #Max =
 hr <- .11 #set weekly survival rate for simulation
 hr.b0 <- log(hr/(1-hr))
 hr.b.adult <- 1
-hr.b.year2 <- 0
-hr.b.year3 <- 0
+hr.b.year <- rep(0, n.band.years)
+for(i in 2:n.band.years){
+  hr.b.year[i] <- rnorm(1, 0, .05)
+}
 hr.error <- .00
-exp(hr.b0 + hr.b.adult + hr.b.year2)/(1+exp(hr.b0 + hr.b.adult + hr.b.year2))
+exp(hr.b0 + hr.b.adult + hr.b.year[1:n.band.years])/(1+exp(hr.b0 + hr.b.adult + hr.b.year[1:n.band.years]))
 
 # Weekly Survival Rate Regression Coefficients
 wsr <- 0.975 #set weekly survival rate for simulation
@@ -195,8 +198,6 @@ for(i in 1:nbandind){
 
 # Calculate Indiviudal Harvest Rate and Survival
 hr.ind.coef <- hr.ind.cap %>%
-  mutate(Year2 = ifelse(CapYear == 2, 1, 0)) %>% #May want to consider coding this so that year is just the index for the beta coefficient
-  mutate(Year3 = ifelse(CapYear == 3, 1, 0)) %>%
   mutate(WSR.Error = rnorm(nbandind, 0, wsr.error)) %>%
   mutate(HR.Error = rnorm(nbandind, 0, hr.error)) %>%
   mutate(WSRRegressionA = wsr.b0 + wsr.b.adult + WSR.SPP + WSR.Error) %>%
@@ -209,15 +210,17 @@ hr.ind.coef <- hr.ind.cap %>%
   mutate(SJ_H2C = WSRJ^36) %>%
   mutate(HRRegressionA = hr.b0 + hr.b.adult + HR.SPP + HR.Error) %>%
   mutate(HRRegressionJ = hr.b0 + HR.SPP + HR.Error)
+
+br.year.df <- as.data.frame(matrix(hr.b.year, nrow = nbandind, ncol = n.band.years, byrow = T))
+hr.ind.betas <- cbind(hr.ind.cap, br.year.df)
   
 BR.br <- matrix(NA, ncol = n.band.years, nrow = nbandind, byrow = F)
-BR.br[,1] <- exp(hr.ind.coef$HRRegressionA)/(1+exp(hr.ind.coef$HRRegressionA))
-BR.br[,2] <- exp(hr.ind.coef$HRRegressionA + hr.b.year2)/(1+exp(hr.ind.coef$HRRegressionA + hr.b.year2))
-BR.br[,3] <- exp(hr.ind.coef$HRRegressionA + hr.b.year3)/(1+exp(hr.ind.coef$HRRegressionA + hr.b.year3))
 BR.br.J <- matrix(NA, ncol = n.band.years, nrow = nbandind, byrow = F)
-BR.br.J[,1] <- exp(hr.ind.coef$HRRegressionJ)/(1+exp(hr.ind.coef$HRRegressionJ))
-BR.br.J[,2] <- exp(hr.ind.coef$HRRegressionJ + hr.b.year2)/(1+exp(hr.ind.coef$HRRegressionJ + hr.b.year2))
-BR.br.J[,3] <- exp(hr.ind.coef$HRRegressionJ + hr.b.year3)/(1+exp(hr.ind.coef$HRRegressionJ + hr.b.year3))
+for(i in 1:n.band.years){
+  BR.br[,i] <- exp(hr.ind.coef$HRRegressionA + hr.b.year[i])/(1+exp(hr.ind.coef$HRRegressionA + hr.b.year[i]))
+  BR.br.J[,i] <- exp(hr.ind.coef$HRRegressionJ + hr.b.year[i])/(1+exp(hr.ind.coef$HRRegressionJ + hr.b.year[i]))
+}
+
 for(i in 1:nbandind){
   if(hr.ind.coef$Adult[i] == 0){
     for(j in 1:hr.ind.coef$CapYear[i]){
@@ -364,8 +367,9 @@ for(i in 1:nrow(br_adult_s)){
 
 
 #Matrix for Year of Harvest for JAGS
-br_2019 <- c(0,0,1,1,0,0)
-br_2020 <- c(0,0,0,0,1,1)
+# br_2019 <- c(0,0,1,1,0,0)
+# br_2020 <- c(0,0,0,0,1,1)
+br_year <- rep(1:n.band.years,each = 2)
 
 #Define z (latent state = true survival before harvest)
 #Define function to create a matrix with information about known latent state z
@@ -518,7 +522,7 @@ EH.wsr <- EH.wsr.1[,-c(1)]
 #Need to have a column for each week observed and have the Age change depending on when they were caught. 
 WSR.adult1 <- matrix(1, nrow = ntelemind, ncol = n.occasions.wsr)
 WSR.adult1[,1] <- WSR.ind.cap$Adult
-for(i in 1:nrow(WSR.adult)){
+for(i in 1:nrow(WSR.adult1)){
   if(WSR.adult1[i,1] != 1){
     WSR.adult1[i,1:12] <- 0
   }
@@ -534,7 +538,7 @@ wsr_adult <- wsr_adult1[!is.na(wsr_adult1)]
 
 #Sex Vector for JAGS
 WSR.sex1 <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr)
-for(i in 1:nrow(WSR.sex)){
+for(i in 1:nrow(WSR.sex1)){
   WSR.sex1[i,] <- WSR.ind.cap$Sex[i]
 }
 WSR.sex <- WSR.sex1
@@ -663,58 +667,58 @@ sampledwmd <- sort(unique(c(wsr_wmd, br_wmd)))
 ### Simulate Total Harvest Information ###
 ##########################################
 #Get Region specific averages of season specific survival and harvest rate
-Region_Mean_HR <- st_drop_geometry(st_join(HR_spvar.points, SA.grid, st_intersects, left = T)) %>%
-  group_by(RegionID) %>%
-  summarize(HR.SPP = mean(HR.SPP)) %>%
-  mutate(REG.HR.J.1 = hr.b0 + HR.SPP) %>%
-  mutate(REG.HR.J.2 = hr.b0 + hr.b.year2 + HR.SPP) %>%
-  mutate(REG.HR.J.3 = hr.b0 + hr.b.year3 + HR.SPP) %>%
-  mutate(REG.HR.A.1 = hr.b0 + hr.b.adult + HR.SPP) %>%
-  mutate(REG.HR.A.2 = hr.b0 + hr.b.adult + hr.b.year2 + HR.SPP) %>%
-  mutate(REG.HR.A.3 = hr.b0 + hr.b.adult + hr.b.year3 + HR.SPP) %>%
-  mutate(HR.J.1 = exp(REG.HR.J.1)/(1+exp(REG.HR.J.1))) %>%
-  mutate(HR.J.2 = exp(REG.HR.J.2)/(1+exp(REG.HR.J.2))) %>%
-  mutate(HR.J.3 = exp(REG.HR.J.3)/(1+exp(REG.HR.J.3))) %>%
-  mutate(HR.A.1 = exp(REG.HR.A.1)/(1+exp(REG.HR.A.1))) %>%
-  mutate(HR.A.2 = exp(REG.HR.A.2)/(1+exp(REG.HR.A.2))) %>%
-  mutate(HR.A.3 = exp(REG.HR.A.3)/(1+exp(REG.HR.A.3))) %>%
-  mutate(Mean.HR.J = (HR.J.1 + HR.J.2 + HR.J.3)/3) %>%
-  mutate(Mean.HR.A = (HR.A.1 + HR.A.2 + HR.A.3)/3)
-
-Region_Mean_WSR <- st_drop_geometry(st_join(WSR_spvar.points, SA.grid, st_intersects, left = T)) %>%
-  group_by(RegionID) %>%
-  summarize(WSR.SPP = mean(WSR.SPP)) %>%
-  mutate(REG.WSR.J = wsr.b0 + WSR.SPP) %>%
-  mutate(REG.WSR.A = wsr.b0 + wsr.b.adult + WSR.SPP) %>%
-  mutate(Mean.WSR.J = exp(REG.WSR.J)/(1+exp(REG.WSR.J))) %>%
-  mutate(Mean.WSR.A = exp(REG.WSR.A)/(1+exp(REG.WSR.A)))
-
-Region_Means <- merge(Region_Mean_HR, Region_Mean_WSR, by = "RegionID") %>%
-  mutate(Annual.S.A = (1-Mean.HR.A)*(Mean.WSR.A^47)) %>%
-  mutate(Annual.S.J = (1-Mean.HR.J)*(Mean.WSR.A^47))
-
-#Create Total Harvest Matrices
-N.A <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
-N.J <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
-totharv.A <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
-totharv.J <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
-N.A[,1] <- sample(min.N.A.1:max.N.A.1, C*D, replace = T)
-N.J[,1] <- sample(min.N.J.1:max.N.J.1, C*D, replace = T)
-
-r.matrix <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
-r.matrix[,1] <- rnorm(C*D, mean.R, sd.R)
-for(i in 1:nrow(r.matrix)){
-  for(j in 2:ncol(r.matrix)){
-    r.matrix[i,j] <- rnorm(1,r.matrix[i,1],.01)
-    N.A[i,j] <- rbinom(1,N.A[i,j-1], Region_Means$Annual.S.A[i]) + rbinom(1,N.J[i,j-1], Region_Means$Annual.S.J[i])
-    N.J[i,j] <- ceiling(r.matrix[i,j]*N.A[i,j-1])
-  }
-  
-  for(j in 1:ncol(totharv.A)){
-    totharv.A[i,j] <- rbinom(1, N.A[i,j], Region_Means$Mean.HR.A[i])
-    totharv.J[i,j] <- rbinom(1, N.J[i,j], Region_Means$Mean.HR.J[i])
-  }
-}
+# Region_Mean_HR <- st_drop_geometry(st_join(HR_spvar.points, SA.grid, st_intersects, left = T)) %>%
+#   group_by(RegionID) %>%
+#   summarize(HR.SPP = mean(HR.SPP)) %>%
+#   mutate(REG.HR.J.1 = hr.b0 + HR.SPP) %>%
+#   mutate(REG.HR.J.2 = hr.b0 + hr.b.year2 + HR.SPP) %>%
+#   mutate(REG.HR.J.3 = hr.b0 + hr.b.year3 + HR.SPP) %>%
+#   mutate(REG.HR.A.1 = hr.b0 + hr.b.adult + HR.SPP) %>%
+#   mutate(REG.HR.A.2 = hr.b0 + hr.b.adult + hr.b.year2 + HR.SPP) %>%
+#   mutate(REG.HR.A.3 = hr.b0 + hr.b.adult + hr.b.year3 + HR.SPP) %>%
+#   mutate(HR.J.1 = exp(REG.HR.J.1)/(1+exp(REG.HR.J.1))) %>%
+#   mutate(HR.J.2 = exp(REG.HR.J.2)/(1+exp(REG.HR.J.2))) %>%
+#   mutate(HR.J.3 = exp(REG.HR.J.3)/(1+exp(REG.HR.J.3))) %>%
+#   mutate(HR.A.1 = exp(REG.HR.A.1)/(1+exp(REG.HR.A.1))) %>%
+#   mutate(HR.A.2 = exp(REG.HR.A.2)/(1+exp(REG.HR.A.2))) %>%
+#   mutate(HR.A.3 = exp(REG.HR.A.3)/(1+exp(REG.HR.A.3))) %>%
+#   mutate(Mean.HR.J = (HR.J.1 + HR.J.2 + HR.J.3)/3) %>%
+#   mutate(Mean.HR.A = (HR.A.1 + HR.A.2 + HR.A.3)/3)
+# 
+# Region_Mean_WSR <- st_drop_geometry(st_join(WSR_spvar.points, SA.grid, st_intersects, left = T)) %>%
+#   group_by(RegionID) %>%
+#   summarize(WSR.SPP = mean(WSR.SPP)) %>%
+#   mutate(REG.WSR.J = wsr.b0 + WSR.SPP) %>%
+#   mutate(REG.WSR.A = wsr.b0 + wsr.b.adult + WSR.SPP) %>%
+#   mutate(Mean.WSR.J = exp(REG.WSR.J)/(1+exp(REG.WSR.J))) %>%
+#   mutate(Mean.WSR.A = exp(REG.WSR.A)/(1+exp(REG.WSR.A)))
+# 
+# Region_Means <- merge(Region_Mean_HR, Region_Mean_WSR, by = "RegionID") %>%
+#   mutate(Annual.S.A = (1-Mean.HR.A)*(Mean.WSR.A^47)) %>%
+#   mutate(Annual.S.J = (1-Mean.HR.J)*(Mean.WSR.A^47))
+# 
+# #Create Total Harvest Matrices
+# N.A <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
+# N.J <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
+# totharv.A <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
+# totharv.J <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
+# N.A[,1] <- sample(min.N.A.1:max.N.A.1, C*D, replace = T)
+# N.J[,1] <- sample(min.N.J.1:max.N.J.1, C*D, replace = T)
+# 
+# r.matrix <- matrix(NA, nrow = C*D, ncol = n.years.totharv)
+# r.matrix[,1] <- rnorm(C*D, mean.R, sd.R)
+# for(i in 1:nrow(r.matrix)){
+#   for(j in 2:ncol(r.matrix)){
+#     r.matrix[i,j] <- rnorm(1,r.matrix[i,1],.01)
+#     N.A[i,j] <- rbinom(1,N.A[i,j-1], Region_Means$Annual.S.A[i]) + rbinom(1,N.J[i,j-1], Region_Means$Annual.S.J[i])
+#     N.J[i,j] <- ceiling(r.matrix[i,j]*N.A[i,j-1])
+#   }
+#   
+#   for(j in 1:ncol(totharv.A)){
+#     totharv.A[i,j] <- rbinom(1, N.A[i,j], Region_Means$Mean.HR.A[i])
+#     totharv.J[i,j] <- rbinom(1, N.J[i,j], Region_Means$Mean.HR.J[i])
+#   }
+# }
 
 
 

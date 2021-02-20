@@ -29,10 +29,12 @@ dat <- list( succ = succ, #Adult Survival
              z = known.state.mr(EH_raw), #Band Recovery
              br_age_hr = br_adult_hr, #Band Recovery
              br_age_s = br_adult_s, #Band Recovery
-             br_2019 = br_2019, #Band Recovery
-             br_2020 = br_2020, #Band Recovery
+             # br_2019 = br_2019, #Band Recovery
+             # br_2020 = br_2020, #Band Recovery
+             br_year = br_year,
              br_s2w = br_s2w, #Band Recovery
              br_wmd = br_wmd,
+             n.years.br = n.band.years,
              
              sampledwmd = sampledwmd, #list of wmd's where we sampled
              cap.site = ind.cap.site, #each individuals capture site as a numeric
@@ -70,12 +72,8 @@ parameters.null <- c('intercept_m', #Non-Harvest Survival Intercept
                      # 'HR.J.2020.cap',
                      # 'mean.WMD.HR.A', #Mean WMD Harvest Rate
                      # 'mean.WMD.HR.J',
-                     'WMD.HR.A.2018',
-                     'WMD.HR.J.2018',
-                     'WMD.HR.A.2019',
-                     'WMD.HR.J.2019',
-                     'WMD.HR.A.2020',
-                     'WMD.HR.J.2020',
+                     'WMD.HR.A',
+                     'WMD.HR.J',
                      'WSR_M_J_S2W',
                      'WSR_M_A_S2W',
                      'WSR_M_J_W2S',
@@ -143,7 +141,7 @@ BR_w_SPP_output <- jags.parallel(data = dat,
 
 BR_w_SPP_output
 
-write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3a_BRWSRsubmodel_output.csv")
+write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3G_output.csv")
 
 # autocorr.plot(wmdspecific_wmdsurv_output,ask=F,auto.layout = T)
 # 

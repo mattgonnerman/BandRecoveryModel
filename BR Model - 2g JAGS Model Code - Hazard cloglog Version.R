@@ -24,9 +24,7 @@ function(){#####################################################################
   ### Band Recovery ###
   alpha_hr ~ dbeta(1,1)
   intercept_hr <- cloglog(alpha_hr)
-  #beta_year[i] Could code this similarly to how you do wmd, just need a vector/matrix with year of capture
-  beta_2019_hr ~ dnorm(0,.01) #Effect of Year on band recovery (2019 vs other)
-  beta_2020_hr ~ dnorm(0,.01) #Effect of Year on band recovery (2020 vs other)
+  for(i in 1:n.years.br){beta_year[i] ~ dnorm(0,.01)} #Effect of wmd (W2S reference)
   beta_A_hr ~ dnorm(0,.01) #Effect of Age on band recovery (Juv reference)
 
   #Specify period specific survival/band recovery
@@ -40,7 +38,7 @@ function(){#####################################################################
       #Band Recovery Model
       #Years Separate
       cloglog(hr.br[j,t]) <- intercept_hr +
-        beta_A_hr*br_age_hr[j,t] + beta_2019_hr*br_2019[t] + beta_2020_hr*br_2020[t] +
+        beta_A_hr*br_age_hr[j,t] + beta_year[br_year[t]] +
         w.tilde[cap.site[j]] + e.cap[cap.site[j]]
       # #Combine years
       # logit(hr.br[j,t]) <- intercept_hr + beta_A_hr*br_age[j,t] + w.tilde[cap.site[j]] + e.cap[cap.site[j]]
@@ -123,22 +121,18 @@ function(){#####################################################################
 
   #Knot specific harvest rates
   for(i in 1:N.knot){
-    cloglog(HR.A.2018.knot[i]) <- intercept_hr + beta_A_hr + w.tilde.star[i]
-    cloglog(HR.J.2018.knot[i]) <- intercept_hr + w.tilde.star[i]
-    cloglog(HR.A.2019.knot[i]) <- intercept_hr + beta_A_hr + beta_2019_hr + w.tilde.star[i]
-    cloglog(HR.J.2019.knot[i]) <- intercept_hr + beta_2019_hr + w.tilde.star[i]
-    cloglog(HR.A.2020.knot[i]) <- intercept_hr + beta_A_hr + beta_2020_hr + w.tilde.star[i]
-    cloglog(HR.J.2020.knot[i]) <- intercept_hr + beta_2020_hr + w.tilde.star[i]
+    for(j in 1:n.years.br){
+      cloglog(HR.A.knot[i,j]) <- intercept_hr + beta_year[j] + beta_A_hr + w.tilde.star[i]
+      cloglog(HR.J.knot[i,j]) <- intercept_hr + beta_year[j] + w.tilde.star[i]
+    }
   }
 
   ### WMD Specific Harvest Rates
   for(i in 1:N.wmd){
-    WMD.HR.A.2018[WMD.id[i]] <- mean(HR.A.2018.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-    WMD.HR.J.2018[WMD.id[i]] <- mean(HR.J.2018.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-    WMD.HR.A.2019[WMD.id[i]] <- mean(HR.A.2019.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-    WMD.HR.J.2019[WMD.id[i]] <- mean(HR.J.2019.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-    WMD.HR.A.2020[WMD.id[i]] <- mean(HR.A.2020.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-    WMD.HR.J.2020[WMD.id[i]] <- mean(HR.J.2020.knot[WMD.matrix[i, 1:WMD.vec[i]]])
+    for(j in 1:n.years.br){
+      WMD.HR.A[WMD.id[i],j] <- mean(HR.A.knot[WMD.matrix[i, 1:WMD.vec[i]],j])
+      WMD.HR.J[WMD.id[i],j] <- mean(HR.J.knot[WMD.matrix[i, 1:WMD.vec[i]],j])
+    }
   }
 
   ### Period Specific Survival
