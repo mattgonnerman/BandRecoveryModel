@@ -49,7 +49,13 @@ dat <- list( succ = succ, #Adult Survival
              N.wmd = nrow(WMD.matrix), #number of WMDs we are using in SPP
              WMD.matrix = WMD.matrix, #matrix showing which wmd a spatial knot is in
              WMD.vec = WMD.vec, #vector for referencing WMD.matrix
-             WMD.id = sort(WMD.id) #vector to ID WMDs in SPP
+             WMD.id = sort(WMD.id), #vector to ID WMDs in SPP
+             
+             th.A = totharv.A, #Total Adult Harvest by WMD '14-'19
+             th.J = totharv.J, #Total Juvenile Harvest by WMD '14-'19 
+             th.year1.A = as.integer(totharv.A[,1]), #Total Adult Harvest by WMD '14-'19
+             th.year1.J = as.integer(totharv.J[,1]), #Total Juvenile Harvest by WMD '14-'19
+             n.years = ncol(totharv.A)
 ) #for Harvest rate estimates
 
 #Parameters monitors
@@ -120,7 +126,7 @@ names_for_parallel <- c("EH_raw",
                         "mr.init.z")
 
 #Model for JAGS
-br_w_as_model <- source(file = "BR Model - 2g JAGS Model Code - Hazard cloglog Version.R")$value
+br_w_as_model <- source(file = "BR Model - 2i JAGS Model Code - 2g with SS.R")$value
 
 
 ### Run Model ###

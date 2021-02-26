@@ -5,11 +5,12 @@ require(miscTools)
 require(ggplot2)
 
 # source(file = "BR Model - 5 Simulated Data.R")
-source(file = "BR Model - 5c Simulated Data.R")
+# source(file = "BR Model - 5c Simulated Data.R") #Frozen at 2g to preserve code
+source(file = "BR Model - 5d Simulated Data.R")
 
 ###Checking for bias in the BR/WSR only model
 #How many simulations do you want to do?
-numsims <- 10
+numsims <- 15
 #Loop to test code
 realized.hr <- matrix(NA, nrow = numsims, ncol = n.band.years*2)
 mean.est.values <- matrix(NA, nrow = numsims, ncol = n.band.years*2)
@@ -20,11 +21,14 @@ mean.real.WSR <- matrix(NA, nrow = numsims, ncol = 2)
 estvalues <- list()
 runlengths <- c()
 nchains <- c()
-time1 <- Sys.time()
+rm(WSR.results.sim)
+rm(HR.results.sim)
 for(looprun in 1:numsims){
+  print(paste("Run", looprun, "Start Time:", Sys.time(), sep = " "))
   #Simulate Data
   # source(file = "BR Model - 5 Simulated Data.R")
-  source(file = "BR Model - 5c Simulated Data.R")
+  # source(file = "BR Model - 5c Simulated Data.R") #Frozen at 2g to preserve code
+  source(file = "BR Model - 5d Simulated Data.R")
   
   # Calculate Realized Harvest Rates
   EH.check <- EH_list_br[[1]][,seq(2,(n.band.years*2),2)]
@@ -47,8 +51,8 @@ for(looprun in 1:numsims){
   true.hr.adult <- colSums(EH.check.adult, na.rm = T)/totalavail.Adult
   true.hr.juv <- colSums(EH.check.juv, na.rm = T)/totalavail.Juv
   realized.hr[looprun,] <- c(true.hr.adult,true.hr.juv)
-  
-  
+
+
   #Realized WSR from BR Data
   true.S.br.check <- EH_list_br[[2]]
   EH.br.check <- EH_list_br[[1]]
@@ -74,7 +78,7 @@ for(looprun in 1:numsims){
   W2S.br.J.totals <- colSums(S.br.check.juv + EH.br.W2S.check.juv, na.rm = T)
   realized.WSR.br.J.W2S <- (W2S.br.J.totals[seq(2,(n.band.years*2),2)]/W2S.br.J.totals[seq(1,(n.band.years*2),2)])^(1/11)
   mean.real.WSR.br[looprun,2] <- mean(realized.WSR.br.J.W2S)
-  
+
   EH.br.S2W.check.adult <- EH.br.check.adult
   EH.br.S2W.check.adult[,seq(4,(n.band.years*2),2)] <- 0
   W2S.br.Aalive <- colSums(S.br.check.adult, na.rm = T)[seq(2,(n.band.years*2),2)]
@@ -85,12 +89,12 @@ for(looprun in 1:numsims){
   W2S.br.AstartC <- W2S.br.AaliveC - W2S.br.Acap
   realized.WSR.br.A.S2W <- (W2S.br.AstartC[2:n.band.years]/W2S.br.AaliveC[1:(n.band.years-1)])^(1/36)
   mean.real.WSR.br[looprun,1] <- mean(c(realized.WSR.br.A.S2W,realized.WSR.br.A.W2S))
-  
+
   
   #Realized WSR from WSR Data
   true.WSR.check <- EH.wsr.list[[2]]
-  true.WSR.A.check <- matrix(NA, nrow = nbandind, ncol = n.occasions.wsr-1)
-  true.WSR.J.check <- matrix(NA, nrow = nbandind, ncol = n.occasions.wsr-1)
+  true.WSR.A.check <- matrix(NA, nrow = nbandind, ncol = n.occasions.wsr)
+  true.WSR.J.check <- matrix(NA, nrow = nbandind, ncol = n.occasions.wsr)
   for(checki in 1:nrow(WSR.adult)){
     for(checkj in 1:ncol(WSR.adult)){
       if(WSR.adult1[checki, checkj] == 1){true.WSR.A.check[checki, checkj] <- true.WSR.check[checki, checkj]}
@@ -118,7 +122,8 @@ for(looprun in 1:numsims){
   
   #Run JAGS model
   # source(file = "BR Model - 3a Execute JAGS.R")
-  source(file = "BR Model - 3g Execute JAGS.R")
+  source(file = "BR Model - 3g Execute JAGS.R") #cloglog for WSR and HR
+  # source(file = "BR Model - 3h Execute JAGS.R") #clog for WSR, logit for HR
   
   #Save HR estimates
   estvalues[[looprun]] <- as.data.frame(BR_w_SPP_output$BUGSoutput$summary) %>%
@@ -140,29 +145,64 @@ for(looprun in 1:numsims){
     mutate(Age = substr(ID,7,7)) %>%
     dplyr::select(mean, WMD, Age) %>%
     group_by(Age) %>%
-    summarize(Mean.WSR = mean(mean))
+    summarize(Mean.WSR = mean(mean)) %>%
+    mutate(SimID = looprun)
   mean.est.WSR[looprun,] <- est.WSR$Mean.WSR
   
-  print(looprun)
-  print(Sys.time())
+  print(paste("Run", looprun, "End Time:", Sys.time(), sep = " "))
 }
-meanbias.hr <- colMeans(realized.hr-mean.est.values, na.rm = T)
-sdbias.hr <- apply(realized.hr-mean.est.values, 2, sd, na.rm = T)
+
+#Estimate Bias between realized and estimated HR
 bias.hr <- realized.hr[1:(looprun),]-mean.est.values[1:(looprun),]
-bias.wsr <- mean.real.WSR - mean.est.WSR 
-meanbias.wsr <- colMeans(bias.wsr, na.rm = T)
-sdbias.wsr <- apply(mean.real.WSR - mean.est.WSR, 2, sd, na.rm = T)
-# 
-# View(realized.hr[1:(looprun-1),])
-# View(mean.est.values[1:(looprun-1),])
+meanbias.hr <- data.frame(Age = rep(c("A", "J"), each = n.years.br),
+                          Year = rep(1:n.years.br,2),
+                          HRMeanBias = colMeans(realized.hr-mean.est.values, na.rm = T),
+                          HRSDBias = apply(realized.hr-mean.est.values, 2, sd, na.rm = T))
 
+#Estimate Bias between realized and estimated WSR
+bias.wsr <- mean.real.WSR - mean.est.WSR
+meanbias.wsr <- data.frame(Age = rep(c("A", "J")),
+                           WSRMeanBias = colMeans(bias.wsr, na.rm = T),
+                           WSRSDBias = apply(mean.real.WSR - mean.est.WSR, 2, sd, na.rm = T))
+#For WSR only
+# bias.wsr <- mean.real.WSR.wsr - mean.est.WSR
+# meanbias.wsr <- data.frame(Age = rep(c("A", "J")),
+#                            WSRMeanBias = colMeans(bias.wsr, na.rm = T),
+#                            WSRSDBias = apply(mean.real.WSR.wsr - mean.est.WSR, 2, sd, na.rm = T))
+# mean.real.WSR.wsr
 
-
-
-
-
-
-
+sink("BiasResults.csv")
+cat("Average Estimated HR")
+cat('\n')
+write.csv(mean.est.values)
+cat('\n')
+cat('\n')
+cat("Average HR Bias (Realized - Estimated)")
+cat('\n')
+write.csv(meanbias.hr)
+cat('\n')
+cat('\n')
+cat("Individual Simulation Bias - HR")
+cat('\n')
+write.csv(bias.hr)
+cat('\n')
+cat('\n')
+cat("Average Estimated WSR")
+cat('\n')
+write.csv(mean.est.WSR)
+cat('\n')
+cat('\n')
+cat("Average WSR Bias (Realized - Estimated)")
+cat('\n')
+write.csv(meanbias.wsr)
+cat('\n')
+cat('\n')
+cat("Individual Simulation Bias - WSR")
+cat('\n')
+write.csv(bias.wsr)
+cat('\n')
+cat('\n')
+sink()
 
 
 

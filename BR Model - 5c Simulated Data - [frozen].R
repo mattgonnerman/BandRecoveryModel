@@ -13,14 +13,14 @@ D = 5
 
 #Capture Locations Locations
 nbandsites <- 3*50 # Number of Banding Capture Sites, must be multiple of 3 due to high/medium/low sampling code
-n.band.years <- 10 #banding seasons
-nbandind <- nbandsites * n.band.years * 2 #Number of individuals banded, #Assumed 1:1 adult to juvenile
+n.band.years <- 6 #banding seasons
+nbandind <- nbandsites * n.band.years * 3 #Number of individuals banded, #Assumed 1:1 adult to juvenile
 
 # Define Telemetry Data
 ntelemsites <- 3*15
-n.years.telem <- 5
+n.years.telem <- 3
 n.occasions.wsr <- 52*n.years.telem # Maximum Exposure Length
-ntelemind <- n.years.telem*50    # Annual number of newly marked individuals
+ntelemind <- n.years.telem*70    # Annual number of newly marked individuals
 visit.rate <- .95 #Probability of finding a bird in a given week, assuming it hasn't been found dead yet
 
 #Amount of spatial correlation in harvest rate and survival
@@ -318,30 +318,6 @@ simul.br <- function(S_H2C.br, S_C2H.br, BR.br, nbandind, yearofcap){
 EH_list_br <- simul.br(S_H2C.br, S_C2H.br, BR.br, nbandind, yearofcap)
 EH_raw <- EH_list_br[[1]]
 
-# Calculate Realized Harvest Rates
-# EH.check <- EH_list[[1]][,seq(2,(n.band.years*2),2)]
-# true.S.check <- EH_list[[2]][,seq(2,(n.band.years*2),2)]
-# Age.check <- br_adult_hr[,seq(2,(n.band.years*2),2)]
-# EH.check.adult <- matrix(NA, nrow = nbandind, ncol = n.band.years)
-# EH.check.juv <- matrix(NA, nrow = nbandind, ncol = n.band.years)
-# S.check.adult <- matrix(NA, nrow = nbandind, ncol = n.band.years)
-# S.check.juv <- matrix(NA, nrow = nbandind, ncol = n.band.years)
-# for(checki in 1:nbandind){
-#   for(checkj in 1:n.band.years){
-#     if(Age.check[checki, checkj] == 1){EH.check.adult[checki, checkj] <- EH.check[checki, checkj]}
-#     if(Age.check[checki, checkj] == 0){EH.check.juv[checki, checkj] <- EH.check[checki, checkj]}
-#     if(Age.check[checki, checkj] == 1){S.check.adult[checki, checkj] <- true.S.check[checki, checkj]}
-#     if(Age.check[checki, checkj] == 0){S.check.juv[checki, checkj] <- true.S.check[checki, checkj]}
-#   }
-# }
-# totalavail.Adult <- colSums(S.check.adult, na.rm = T) + colSums(EH.check.adult, na.rm = T)
-# totalavail.Juv <- colSums(S.check.juv, na.rm = T) + colSums(EH.check.juv, na.rm = T)
-# true.hr.adult <- colSums(EH.check.adult, na.rm = T)/totalavail.Adult
-# true.hr.juv <- colSums(EH.check.juv, na.rm = T)/totalavail.Juv
-# true.hr.means <- c(true.hr.adult,true.hr.juv)
-# testcheck <- true.hr.means
-
-
 #Create vector with occasion of marking
 get.first <- function(x) min(which(x!=0))
 f <- apply(EH_raw, 1, get.first)
@@ -355,7 +331,6 @@ for(i in 1:nrow(br_adult_hr)){
     br_adult_hr[i,1:(2*hr.ind.cap$CapYear[i])] <- 0
   }
 }
-# br_adult_hr <- ifelse(br_adult_hr == 1, 0, 1) #This is because you stupidly coded the simulation so 1 is JUV but in the model 1 is Adult
 
 br_adult_s <- matrix(1, nrow = nbandind, ncol = 2*n.band.years)
 for(i in 1:nrow(br_adult_s)){
@@ -363,12 +338,8 @@ for(i in 1:nrow(br_adult_s)){
     br_adult_s[i,1:((2*hr.ind.cap$CapYear[i])-1)] <- 0
   }
 }
-# br_adult_s <- ifelse(br_adult_s == 1, 0, 1) #This is because you stupidly coded the simulation so 1 is JUV but in the model 1 is Adult
-
 
 #Matrix for Year of Harvest for JAGS
-# br_2019 <- c(0,0,1,1,0,0)
-# br_2020 <- c(0,0,0,0,1,1)
 br_year <- rep(1:n.band.years,each = 2)
 
 #Define z (latent state = true survival before harvest)
@@ -407,17 +378,25 @@ weeks2harv <- rep(11, nbandind)
 #Create vector of which Region each turkey was captured in
 telemsite.region <- st_drop_geometry(st_join(BSites.spvar.sf, SA.grid, join = st_within)) %>%
   rename(CapSite = SiteID)
-br.ind.wmd <- merge(hr.ind.cap, telemsite.region, by = "CapSite", all.x = T)
+br.ind.wmd <- merge(hr.ind.cap, telemsite.region, by = "CapSite", all.x = T) %>% arrange(Ind.ID)
 br_wmd <- br.ind.wmd$RegionID
 
 #Create matrix to designate Season (S2W)
 br_s2w <- matrix(ncol = ncol(br_adult_hr), nrow = nrow(br_adult_hr))
+br_w2s <- matrix(ncol = ncol(br_adult_hr), nrow = nrow(br_adult_hr))
 odd <- seq(1, 2*n.band.years, 2)
 even <- seq(2, 2*n.band.years, 2)
 br_s2w[,odd] <- 0
 br_s2w[,even] <- 1
+br_w2s[,odd] <- 1
+br_w2s[,even] <- 0
 
-
+#vector to designate capture
+odd <- seq(1, 2*n.band.years, 2)
+br_season <- c()
+for(t in 1:(2*n.band.years)){
+  if(t %in% odd){br_season[t] <- 1}else{br_season[t] <- 0}
+}
 
 #########################################
 ### Simulate Weekly Surival Rate Data ###
@@ -458,9 +437,13 @@ for(i in 1:ntelemind) {
   }
 }
 
+# # This code is to deal with the periods that should be during the hunting season. 
+# # For now just have them be the same as the other
+# WSR.wsr[,rep(12:16, n.years.telem) + rep((52*(0:(n.years.telem-1))), each = 5)] <- 1
+
 # Define function to simulate mark-recovery data
 simul.wsr <- function(WSR.wsr, Visit.wsr, ntelemind){
-  n.occasions <- dim(WSR.wsr)[2]
+  n.occasions <- 1+dim(WSR.wsr)[2]
   true.S <- matrix(NA, ncol = n.occasions, nrow = ntelemind)
   EH <- matrix(NA, ncol = n.occasions, nrow = ntelemind)
   
@@ -471,11 +454,11 @@ simul.wsr <- function(WSR.wsr, Visit.wsr, ntelemind){
   # Fill the EH matrix
   for (i in 1:ntelemind){
     for (t in 2:n.occasions){
-      ts <- rbinom(1, 1, WSR.wsr[i,t-1]) #does bird survive from last occassion
+      ts <- rbinom(1, 1, WSR.wsr[i,t-1]) #does bird survive from last occasion
       find <- rbinom(1,1, visit.rate) #is bird found this occasion
       
-      if(true.S[i,t-1] == 1){ #If the bird was alive at previous occassion
-        if(ts == 1){ #Bird Survived to current occassion
+      if(true.S[i,t-1] == 1){ #Was bird alive at last occasion
+        if(ts == 1){ #Bird Survived to current occasion
           true.S[i,t] <- 1
           if(find == 1){ #Bird is Found
             EH[i,t] <- 1
@@ -491,17 +474,13 @@ simul.wsr <- function(WSR.wsr, Visit.wsr, ntelemind){
             EH[i,t] <- NA
           }
         }
-      }else{ #Bird dead at previous occassion
+      }else{ #Bird dead at previous occasion, not found yet
         true.S[i,t] <- 0
-        if(is.na(EH[i, t-1])){ #Bird not found in previous occassion
-          if(find == 1){
-            EH[i,t] <- 0
-            break
-          }else{
-            EH[i,t] <- NA
-          }
-        }else{
+        if(find == 1){#Bird not found in previous occasion
+          EH[i,t] <- 0
           break
+        }else{
+          EH[i,t] <- NA
         }
       }
     }
@@ -520,7 +499,7 @@ EH.wsr <- EH.wsr.1[,-c(1)]
 
 #Age Matrix for JAGS
 #Need to have a column for each week observed and have the Age change depending on when they were caught. 
-WSR.adult1 <- matrix(1, nrow = ntelemind, ncol = n.occasions.wsr)
+WSR.adult1 <- matrix(1, nrow = ntelemind, ncol = n.occasions.wsr+1)
 WSR.adult1[,1] <- WSR.ind.cap$Adult
 for(i in 1:nrow(WSR.adult1)){
   if(WSR.adult1[i,1] != 1){
@@ -537,7 +516,7 @@ wsr_adult <- wsr_adult1[!is.na(wsr_adult1)]
 
 
 #Sex Vector for JAGS
-WSR.sex1 <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr)
+WSR.sex1 <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr+1)
 for(i in 1:nrow(WSR.sex1)){
   WSR.sex1[i,] <- WSR.ind.cap$Sex[i]
 }
@@ -551,8 +530,8 @@ wsr_sex <- wsr_sex1[!is.na(wsr_sex1)]
 #Create vector of which Region each turkey was captured in
 telemsite.region <- st_drop_geometry(st_join(BSites.spvar.sf, SA.grid, join = st_within)) %>%
   rename(CapSite = SiteID)
-wsr.ind.wmd <- merge(WSR.ind.cap, telemsite.region, by = "CapSite", all.x = T)
-WSR.wmd <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr)
+wsr.ind.wmd <- merge(telemsite.region, WSR.ind.cap, by = "CapSite", all.y = T) %>% arrange(ID)
+WSR.wmd <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr+1)
 for(i in 1:nrow(WSR.wmd)){
   WSR.wmd[i,] <- wsr.ind.wmd$RegionID[i]
 }
@@ -587,21 +566,20 @@ for(i in 1:ntelemind){
 interval.wsr <- as.vector(t(visit_ind))
 interval <- interval.wsr[!is.na(interval.wsr)]
 
-#Vector designating which season a visit was in, S2W vs W2S
+#Vector designating which season a visit was in, S2W (1) vs W2S (0)
 time.cov <- EH.wsr
+W2Sweeks <- rep(1:11, n.years.telem) + rep((52*(0:(n.years.telem-1))), each = 11)
+harvestweeks <- rep(12:16, n.years.telem) + rep((52*(0:(n.years.telem-1))), each = 5)
 for(i in 1:ncol(time.cov)){
-  if(i %in% c(1:10, 52:62,  104:114)){
-    time.cov[,i] <- 0
-  }else{
-    time.cov[,i] <- 1
-  }
+  time.cov[,i] <- ifelse(i %in% W2Sweeks, 1, 
+                         ifelse(i %in% harvestweeks, 0, 2))
 }
 time.cov[is.na(EH.wsr)] <- NA
 wsr_time1 <- as.vector(t(time.cov))
 wsr_time <- wsr_time1[!is.na(wsr_time1)]
 
-
-
+wsr_S2W <- ifelse(wsr_time == 2, 1, 0)
+wsr_W2S <- ifelse(wsr_time == 1, 1, 0)
 
 
 #######################################################

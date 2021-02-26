@@ -120,7 +120,7 @@ names_for_parallel <- c("EH_raw",
                         "mr.init.z")
 
 #Model for JAGS
-br_w_as_model <- source(file = "BR Model - 2g JAGS Model Code - Hazard cloglog Version.R")$value
+br_w_as_model <- source(file = "BR Model - 2h JAGS Model Code - Hazard cloglog WSR - Logit HR.R")$value
 
 
 ### Run Model ###
@@ -146,7 +146,7 @@ BR_w_SPP_output <- jags.parallel(data = dat,
 
 BR_w_SPP_output
 
-write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3G_output.csv")
+write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3H_output.csv")
 
 # autocorr.plot(wmdspecific_wmdsurv_output,ask=F,auto.layout = T)
 # 
