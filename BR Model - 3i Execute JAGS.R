@@ -55,7 +55,10 @@ dat <- list( succ = succ, #Adult Survival
              th.J = totharv.J, #Total Juvenile Harvest by WMD '14-'19 
              th.year1.A = as.integer(totharv.A[,1]), #Total Adult Harvest by WMD '14-'19
              th.year1.J = as.integer(totharv.J[,1]), #Total Juvenile Harvest by WMD '14-'19
-             n.years = ncol(totharv.A)
+             n.years = ncol(totharv.A),
+             yearsHRavail = yearsHRavail,
+             HRnotavail = HRnotavail,
+             max.notavail <- max(HRnotavail)
 ) #for Harvest rate estimates
 
 #Parameters monitors

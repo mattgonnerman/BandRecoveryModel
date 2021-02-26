@@ -721,3 +721,5 @@ for(i in 1:nrow(r.matrix)){
 #Vector for which years in the total harvest data we estimated HR from the BR model
 yearsHRavail <- (n.years.totharv+1):n.years.TH
 HRnotavail <- 1:n.years.totharv
+
+yearsHRavail-max(HRnotavail)

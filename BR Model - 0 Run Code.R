@@ -24,12 +24,17 @@ print(Sys.time())
 # source(file = "BR Model - 3z Execute JAGS.R") # Master Script for testing various options for dealing with underestimation of HR
 # source(file = "BR Model - 3f Execute JAGS.R") #Kery and Schaub version of the SS
 # source(file = "BR Model - 3g Execute JAGS.R") #cloglog link
+# source(file = "BR Model - 3i Execute JAGS.R") #SS with year difference in HR (built from 3g)
 source(file = "BR Model - 3j Execute JAGS.R") #SS with no year difference (built from 3g)
 
-#Return Estimated values
-source(file = "BR Model - 4 Examine Model Output.R")
+#Examine Output of Real Dataset
+# source(file = "BR Model - 4 Examine Model Output.R")
+
+#Examine Output of Single Simulated Dataset
+source(file = "BR Model - 7 Individual Simulation Results.R")
 
 #Run multiple simulations and compare to realized harvest
-source(file = "BR Model - 7 Bias Check through simulations.R")
+source(file = "BR Model - 6a Looped Simulation.R")
 
-\
+
+

@@ -133,6 +133,9 @@ function(){#####################################################################
       WMD.HR.A[WMD.id[i],j] <- mean(HR.A.knot[WMD.matrix[i, 1:WMD.vec[i]],j])
       WMD.HR.J[WMD.id[i],j] <- mean(HR.J.knot[WMD.matrix[i, 1:WMD.vec[i]],j])
     }
+    
+    mean.WMD.HR.A[WMD.id[i]] <- mean(WMD.HR.A[WMD.id[i],])
+    mean.WMD.HR.J[WMD.id[i]] <- mean(WMD.HR.J[WMD.id[i],])
   }
   
   ### Period Specific Survival
@@ -160,26 +163,40 @@ function(){#####################################################################
   
   ##############################################################################################
   ### State-Space Abundance ###
+  #Allowable yearly deviation from mean harvest rate
+  tau.harv.A <- pow(sigma.harv.A, -2) #for Logit-Normal distribution
+  sigma.harv.A ~ dunif(0,.05) #for Logit-Normal distribution
+  tau.harv.J <- pow(sigma.harv.J, -2) #for Logit-Normal distribution
+  sigma.harv.J ~ dunif(0,.05) #for Logit-Normal distribution
+  
   for(i in 1:N.wmd){
+    
     #For years where HR was estimated in BR
     for(t in yearsHRavail){
       #Total harvest Observation
-      th.A[WMD.id[i],t] ~ dbin(WMD.HR.A[WMD.id[i],j], N.A[WMD.id[i],t])
-      th.J[WMD.id[i],t] ~ dbin(WMD.HR.J[WMD.id[i],j], round(N.J[WMD.id[i],t]))
-    }
-    #For years where HR was not specifically estimated in BR
-    for(t in HRnotavail){
-      #Total harvest Observation
-      WMD.HR.A.dist <- 
-      
-      th.A[WMD.id[i],t] ~ dbin(mean.WMD.HR.A[WMD.id[i]], N.A[WMD.id[i],t])
-      th.J[WMD.id[i],t] ~ dbin(mean.WMD.HR.J[WMD.id[i]], round(N.J[WMD.id[i],t]))
+      WMD.HR.A.SS[WMD.id[i],t] <- WMD.HR.A[WMD.id[i],t-max.notavail]
+      WMD.HR.J.SS[WMD.id[i],t] <- WMD.HR.A[WMD.id[i],t-max.notavail]
     }
     
-    # Total Annual Survival Probability #Temporal Variation in S and HR
-    totalS.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W *(1-mean.WMD.HR.A[WMD.id[i]]) #
-    totalS.J[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W *(1-mean.WMD.HR.J[WMD.id[i]]) # J transition to A after 1st hunting season, hence S.A used
-
+    for(t in HRnotavail){
+      #Total harvest Observation
+      l.WMD.HR.A.SS[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.A[WMD.id[i]]), tau.harv.A)
+      l.WMD.HR.J.SS[WMD.id[i],t] ~ dnorm(logit(mean.WMD.HR.J[WMD.id[i]]), tau.harv.J)
+      
+      logit(WMD.HR.A.SS[WMD.id[i],t]) <- l.WMD.HR.A.SS[WMD.id[i],t] #Temporal Variation in HR
+      logit(WMD.HR.J.SS[WMD.id[i],t]) <- l.WMD.HR.J.SS[WMD.id[i],t] #Temporal Variation in HR
+    }
+    
+    #For years where HR was not specifically estimated in BR
+    for(t in 1:n.years){
+      th.A[WMD.id[i],t] ~ dbin(WMD.HR.A.SS[WMD.id[i],t], N.A[WMD.id[i],t])
+      th.J[WMD.id[i],t] ~ dbin(WMD.HR.J.SS[WMD.id[i],t], N.J[WMD.id[i],t])
+    
+      # Total Annual Survival Probability #Temporal Variation in S and HR
+      totalS.A[WMD.id[i],t] <- S_M_A_W2S * S_M_A_S2W *(1-WMD.HR.A.SS[WMD.id[i],t]) #
+      totalS.J[WMD.id[i],t] <- S_M_A_W2S * S_M_A_S2W *(1-WMD.HR.J.SS[WMD.id[i],t]) # J transition to A after 1st hunting season, hence S.A used
+    }
+    
     #Need to specify N[t=1], needs to be a whole number.
     #th.year1 are just the harvest totals from year 1
     #This assumes there is at least 1 turkey in each WMD at the first timestep
@@ -189,8 +206,8 @@ function(){#####################################################################
     for(t in 1:(n.years-1)){
       # Number of birds to A to surive OR J that transition into A from t to t+1
       N.A[WMD.id[i],t+1] <- n.surv.A[WMD.id[i],t] + n.surv.J[WMD.id[i],t] #Requires Specific Starting Parameters
-      n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i]], N.A[WMD.id[i],t]) #Requires Specific Starting Parameters
-      n.surv.J[WMD.id[i],t] ~ dbin(totalS.J[WMD.id[i]], N.J[WMD.id[i],t]) #Requires Specific Starting Parameters
+      n.surv.A[WMD.id[i],t] ~ dbin(totalS.A[WMD.id[i],t], N.A[WMD.id[i],t]) #Requires Specific Starting Parameters
+      n.surv.J[WMD.id[i],t] ~ dbin(totalS.J[WMD.id[i],t], N.J[WMD.id[i],t]) #Requires Specific Starting Parameters
       
       #Number of Birds recruited to the Juvenile population in t
       #Single Distribution of R for all WMDs and Years
