@@ -7,9 +7,9 @@ setwd("E:/GitHub/BandRecoveryModel")
 source(file = "BR Model - 5d Simulated Data.R") #
 
 # #MCMC settings
-ni <- 30000 #number of iterations
+ni <- 10000 #number of iterations
 nt <- 8 #thinning
-nb <- 15000 #burn in period
+nb <- 5000 #burn in period
 nc <- 5 #number of chains
 
 print(Sys.time())
@@ -24,6 +24,7 @@ print(Sys.time())
 # source(file = "BR Model - 3z Execute JAGS.R") # Master Script for testing various options for dealing with underestimation of HR
 # source(file = "BR Model - 3f Execute JAGS.R") #Kery and Schaub version of the SS
 # source(file = "BR Model - 3g Execute JAGS.R") #cloglog link
+# source(file = "BR Model - 3h Execute JAGS.R") #cloglog link
 # source(file = "BR Model - 3i Execute JAGS.R") #SS with year difference in HR (built from 3g)
 source(file = "BR Model - 3j Execute JAGS.R") #SS with no year difference (built from 3g)
 

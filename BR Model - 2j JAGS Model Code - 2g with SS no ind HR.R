@@ -174,7 +174,7 @@ function(){#####################################################################
       
       #Number of Birds recruited to the Juvenile population in t
       N.J[WMD.id[i],t+1] ~ dpois(meanY1[WMD.id[i],t])
-      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t]# * S_M_J_W2S
+      meanY1[WMD.id[i],t] <- R[WMD.id[i],t] * N.A[WMD.id[i],t]
       log(R[WMD.id[i],t]) <- alpha.R[WMD.id[i],t]
       alpha.R[WMD.id[i],t] ~ dunif(-10,10)
     }

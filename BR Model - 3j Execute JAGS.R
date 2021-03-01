@@ -80,6 +80,8 @@ parameters.null <- c('intercept_m', #Non-Harvest Survival Intercept
                      
                      'N.A', #SS Abundance
                      'N.J',
+                     'n.surv.A',
+                     'n.surv.J',
                      
                      'mean.R', #Mean WMD Specific Recruitment Rate
                      'R' #WMD and Time Specific Recruitment Rate

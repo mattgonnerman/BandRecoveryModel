@@ -13,8 +13,8 @@ D = 5
 
 #Capture Locations Locations
 nbandsites <- 3*50 # Number of Banding Capture Sites, must be multiple of 3 due to high/medium/low sampling code
-n.band.years <- 6 #banding seasons
-nbandind <- nbandsites * n.band.years * 2 #Number of individuals banded, #Assumed 1:1 adult to juvenile
+n.band.years <- sample(4:10,1) #banding seasons
+nbandind <- n.band.years * 500 #Number of individuals banded, #Assumed 1:1 adult to juvenile
 
 # Define Telemetry Data
 ntelemsites <- 3*15
@@ -710,7 +710,7 @@ for(i in 1:nrow(r.matrix)){
     
     N.A[i,j] <- rbinom(1, (N.A[i,j-1] - totharv.A[i,j-1]), Region_Mean_WSR$NonHarv.S.A[i]) + 
       rbinom(1, (N.J[i,j-1] - totharv.J[i,j-1]), Region_Mean_WSR$NonHarv.S.J[i])
-    N.J[i,j] <- ceiling(r.matrix[i,j]*N.A[i,j-1])
+    N.J[i,j] <- rpois(1,r.matrix[i,j]*N.A[i,j-1])
     
     totharv.A[i,j] <- rbinom(1, N.A[i,j], SS.HR.A[i,j])
     totharv.J[i,j] <- rbinom(1, N.J[i,j], SS.HR.J[i,j])

@@ -1,7 +1,7 @@
 #Examine Model Outputs more easily
 outputs <- as.data.frame(BR_w_SPP_output$BUGSoutput$summary)
 outputs$X <- rownames(outputs)
-# outputs <- read.csv("3J_output.csv")
+# outputs <- read.csv("3G_output.csv")
 require(dplyr)
 require(stringr)
 require(tidyr)
@@ -53,20 +53,32 @@ R.est <- R.long %>%
 
 ### WMD and Time Specific Harvest Rate Estimates
 #Save HR estimates
-estvalues.HR <- outputs %>%
+estvalues.HR.br <- outputs %>%
   rename(ID = X) %>%
   filter(grepl("WMD.HR.", ID)) %>%
   mutate(WMD = str_extract(ID, "(?<=\\[).*?(?=\\,)")) %>%
   mutate(Year = as.numeric(str_extract(ID, "(?<=\\,).*?(?=\\])"))) %>%
   filter(!is.na(Year)) %>%
   mutate(Age = substr(ID,8,8)) %>%
+  filter(!grepl("SS", ID)) %>%
   dplyr::select(mean, Year, WMD, Age) %>%
   pivot_wider(names_from = c(Age, Year), values_from = c(mean), names_sort = T)
-mean.est.values.HR <- colMeans(estvalues.HR[,2:((n.band.years*2)+1)])
+mean.est.values.HR <- colMeans(estvalues.HR.br[,2:((n.band.years*2)+1)])
+
+estvalues.HR.ss <- outputs %>%
+  rename(ID = X) %>%
+  filter(grepl("WMD.HR.", ID)) %>%
+  mutate(WMD = str_extract(ID, "(?<=\\[).*?(?=\\,)")) %>%
+  mutate(Year = as.numeric(str_extract(ID, "(?<=\\,).*?(?=\\])"))) %>%
+  filter(!is.na(Year)) %>%
+  mutate(Age = substr(ID,8,8)) %>%
+  filter(grepl("SS", ID)) %>%
+  dplyr::select(mean, Year, WMD, Age) %>%
+  pivot_wider(names_from = c(Age, Year), values_from = c(mean), names_sort = T)
 
 #Adult
 HR.A.long <- outputs %>% 
-  filter(substr(X,1,8) == "WMD.HR.A") %>%
+  filter(substr(X,1,9) == "WMD.HR.A[") %>%
   mutate(WMD = str_extract(X, "[:digit:]+")) %>%
   mutate(Year = as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
   dplyr::select(Year, mean, WMD)
@@ -77,7 +89,7 @@ HR.A.est <- HR.A.long %>%
 
 #Juvenile
 HR.J.long <- outputs %>% 
-  filter(substr(X,1,8) == "WMD.HR.J") %>%
+  filter(substr(X,1,9) == "WMD.HR.J[") %>%
   mutate(WMD = str_extract(X, "[:digit:]+")) %>%
   mutate(Year = as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
   dplyr::select(Year, mean, WMD)
@@ -246,7 +258,22 @@ N.bias.J.diff <- (as.data.frame(real.N.J) - as.data.frame(N.J.est)[,-1])
 N.bias.J.prop <- (as.data.frame(real.N.J) - as.data.frame(N.J.est)[,-1])/as.data.frame(real.N.A)
 N.bias.J.prop.byyear <- colMeans(N.bias.J.prop)
 
-sink("BiasResults - SingleRun.csv")
+#Estimate Bias between realized and estimated R
+R.bias <- colMeans(r.matrix[,-1] - R.est[,-1])
+
+sink(paste("BiasResults - SingleRun - 3J Trial ",looprun,".csv", sep = ""))
+cat(paste("Years BR Data:", n.band.years, sep = " "))
+cat('\n')
+cat(paste("Number of Individuals in BR Data:", nbandind, sep = " "))
+cat('\n')
+cat(paste("Additional Years of Total Harvest Data in SS:", n.years.totharv))
+cat('\n')
+cat(paste("Years WSR Data:", n.years.telem, sep = " "))
+cat('\n')
+cat(paste("Number of Individuals in WSR Data:", ntelemind, sep = " "))
+cat('\n')
+cat('\n')
+cat('\n')
 cat("Average HR Bias (Realized - Estimated)")
 cat('\n')
 write.csv(bias.hr)
@@ -307,164 +334,169 @@ cat('\n')
 write.csv(as.data.frame(N.J.est)[,-1])
 cat('\n')
 cat('\n')
+cat("Mean R Bias by year")
+cat('\n')
+write.csv(R.bias)
+cat('\n')
+cat('\n')
 sink()
 
 
-###################################################################
-##################
-### Make Plots ###
-##################
-
-### Population Size
-# Adult
-ggplot(data = N.A.long, aes(y = mean, x = Year, group = WMD)) +
-  geom_line(aes(color = WMD), alpha = .8, size = 1.2)
-ggsave("N_A_WMDestimates.jpeg", width = 12, height = 8, units = "in")
-
-ggplot(data = N.A.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
-  stat_smooth(method = lm, aes(color = WMD, fill = WMD), alpha = .1)+
-  geom_point(aes(color = WMD), alpha = .8, size = 1.2)
-ggsave("N_A_WMDtrends.jpeg", width = 12, height = 8, units = "in")
-
-# Juvenile
-ggplot(data = N.J.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
-  geom_line(aes(color = WMD), alpha = .8, size = 1.2)
-ggsave("N_J_WMDestimates.jpeg", width = 12, height = 8, units = "in")
-
-ggplot(data = N.J.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
-  stat_smooth(method = lm, aes(color = WMD, fill = WMD), alpha = .1)+
-  geom_point(aes(color = WMD), alpha = .8, size = 1.2)
-ggsave("N_J_WMDtrends.jpeg", width = 12, height = 8, units = "in")
-
-### Recruitment
-ggplot(data = R.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
-  geom_line(aes(color = WMD), alpha = .8, size = 1.2)
-ggsave("R_WMDestimates.jpeg", width = 12, height = 8, units = "in")
-
-### Harvest Rates
-#Adult
-ggplot(data = HR.A.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
-  geom_line(aes(color = WMD), alpha = .8, size = 1.2)
-ggsave("HR_A_WMDestimates.jpeg", width = 12, height = 8, units = "in")
-
-#Juvenile
-ggplot(data = HR.J.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
-  geom_line(aes(color = WMD), alpha = .8, size = 1.2)
-ggsave("HR_J_WMDestimates.jpeg", width = 12, height = 8, units = "in")
-
-### Survival
-#Adult
-ggplot(data = S.A.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
-  geom_line(aes(color = WMD), alpha = .8, size = 1.2)
-ggsave("S_A_WMDestimates.jpeg", width = 12, height = 8, units = "in")
-
-#Juvenile
-ggplot(data = S.J.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
-  geom_line(aes(color = WMD), alpha = .8, size = 1.2)
-ggsave("S_J_WMDestimates.jpeg", width = 12, height = 8, units = "in")
-
-###############################################################################
-###############################################################################
-#######################
-### RHat Values ###
-#######################
-### Total Model Rhat
-ggplot(data = outputs, aes(x = Rhat)) +
-  geom_histogram() +
-  xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
-  labs(title = "Total Tracked Parameters Convergence")
-ggsave("FullTracked_RHat.jpeg", width = 8, height = 8, units = "in")
-
-
-### WMD and Time Specific Abundance Rhat
-# Adult
-N.A.rhat <- outputs %>% 
-  filter(substr(X,1,3) == "N.A") %>%
-  mutate(WMD = str_extract(X, "[:digit:]+")) %>%
-  mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
-  dplyr::select(Year, Rhat, WMD)
-ggplot(data = N.A.rhat, aes(x = Rhat)) +
-  geom_histogram() +
-  xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
-  labs(title = "WMD and Time Specific N.A Convergence")
-ggsave("N_A_RHat.jpeg", width = 8, height = 8, units = "in")
-
-
-#Juvenile
-N.J.rhat <- outputs %>% 
-  filter(substr(X,1,3) == "N.J") %>%
-  mutate(WMD = str_extract(X, "[:digit:]+")) %>%
-  mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
-  dplyr::select(Year, Rhat, WMD)
-ggplot(data = N.J.rhat, aes(x = Rhat)) +
-  geom_histogram() +
-  xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
-  labs(title = "WMD and Time Specific N.J Convergence")
-ggsave("N_J_RHat.jpeg", width = 8, height = 8, units = "in")
-
-
-### Recruitment
-R.rhat <- outputs %>% 
-  filter(substr(X,1,2) == "R[") %>%
-  mutate(WMD = str_extract(X, "[:digit:]+")) %>%
-  mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
-  dplyr::select(Year, Rhat, WMD)
-ggplot(data = R.rhat, aes(x = Rhat)) +
-  geom_histogram() +
-  xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
-  labs(title = "WMD and Time Specific R Convergence")
-ggsave("R_RHat.jpeg", width = 8, height = 8, units = "in")
-
-
-### WMD and Time Specific Harvest Rate Estimates
-#Adult
-HR.A.rhat <- outputs %>% 
-  filter(substr(X,1,8) == "WMD.HR.A") %>%
-  mutate(WMD = str_extract(X, "[:digit:]+")) %>%
-  mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
-  dplyr::select(Year, Rhat, WMD)
-ggplot(data = HR.A.rhat, aes(x = Rhat)) +
-  geom_histogram() +
-  xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
-  labs(title = "WMD and Time Specific HR.A Convergence")
-ggsave("HR_A_RHat.jpeg", width = 8, height = 8, units = "in")
-
-
-#Juvenile
-HR.J.rhat <- outputs %>% 
-  filter(substr(X,1,8) == "WMD.HR.J") %>%
-  mutate(WMD = str_extract(X, "[:digit:]+")) %>%
-  mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
-  dplyr::select(Year, Rhat, WMD)
-ggplot(data = HR.J.rhat, aes(x = Rhat)) +
-  geom_histogram() +
-  xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
-  labs(title = "WMD and Time Specific HR.J Convergence")
-ggsave("HR_J_RHat.jpeg", width = 8, height = 8, units = "in")
-
-
-### WMD and Time Specific Non Harvest Survival Estimates
-# Adult
-S.A.rhat <- outputs %>% 
-  filter(substr(X,1,8) == "totalS.A") %>%
-  mutate(WMD = str_extract(X, "[:digit:]+")) %>%
-  mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
-  dplyr::select(Year, Rhat, WMD)
-ggplot(data = S.A.rhat, aes(x = Rhat)) +
-  geom_histogram() +
-  xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
-  labs(title = "WMD and Time Specific S.A Convergence")
-ggsave("S_A_RHat.jpeg", width = 8, height = 8, units = "in")
-
-
-#Juvenile
-S.J.rhat <- outputs %>% 
-  filter(substr(X,1,8) == "totalS.J") %>%
-  mutate(WMD = str_extract(X, "[:digit:]+")) %>%
-  mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
-  dplyr::select(Year, Rhat, WMD)
-ggplot(data = S.J.rhat, aes(x = Rhat)) +
-  geom_histogram() +
-  xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
-  labs(title = "WMD and Time Specific S.J Convergence")
-ggsave("S_J_RHat.jpeg", width = 8, height = 8, units = "in")
+# ###################################################################
+# ##################
+# ### Make Plots ###
+# ##################
+# 
+# ### Population Size
+# # Adult
+# ggplot(data = N.A.long, aes(y = mean, x = Year, group = WMD)) +
+#   geom_line(aes(color = WMD), alpha = .8, size = 1.2)
+# ggsave("N_A_WMDestimates.jpeg", width = 12, height = 8, units = "in")
+# 
+# ggplot(data = N.A.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
+#   stat_smooth(method = lm, aes(color = WMD, fill = WMD), alpha = .1)+
+#   geom_point(aes(color = WMD), alpha = .8, size = 1.2)
+# ggsave("N_A_WMDtrends.jpeg", width = 12, height = 8, units = "in")
+# 
+# # Juvenile
+# ggplot(data = N.J.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
+#   geom_line(aes(color = WMD), alpha = .8, size = 1.2)
+# ggsave("N_J_WMDestimates.jpeg", width = 12, height = 8, units = "in")
+# 
+# ggplot(data = N.J.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
+#   stat_smooth(method = lm, aes(color = WMD, fill = WMD), alpha = .1)+
+#   geom_point(aes(color = WMD), alpha = .8, size = 1.2)
+# ggsave("N_J_WMDtrends.jpeg", width = 12, height = 8, units = "in")
+# 
+# ### Recruitment
+# ggplot(data = R.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
+#   geom_line(aes(color = WMD), alpha = .8, size = 1.2)
+# ggsave("R_WMDestimates.jpeg", width = 12, height = 8, units = "in")
+# 
+# ### Harvest Rates
+# #Adult
+# ggplot(data = HR.A.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
+#   geom_line(aes(color = WMD), alpha = .8, size = 1.2)
+# ggsave("HR_A_WMDestimates.jpeg", width = 12, height = 8, units = "in")
+# 
+# #Juvenile
+# ggplot(data = HR.J.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
+#   geom_line(aes(color = WMD), alpha = .8, size = 1.2)
+# ggsave("HR_J_WMDestimates.jpeg", width = 12, height = 8, units = "in")
+# 
+# ### Survival
+# #Adult
+# ggplot(data = S.A.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
+#   geom_line(aes(color = WMD), alpha = .8, size = 1.2)
+# ggsave("S_A_WMDestimates.jpeg", width = 12, height = 8, units = "in")
+# 
+# #Juvenile
+# ggplot(data = S.J.long, aes(y = mean, x = as.factor(Year), group = WMD)) +
+#   geom_line(aes(color = WMD), alpha = .8, size = 1.2)
+# ggsave("S_J_WMDestimates.jpeg", width = 12, height = 8, units = "in")
+# 
+# ###############################################################################
+# ###############################################################################
+# #######################
+# ### RHat Values ###
+# #######################
+# ### Total Model Rhat
+# ggplot(data = outputs, aes(x = Rhat)) +
+#   geom_histogram() +
+#   xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
+#   labs(title = "Total Tracked Parameters Convergence")
+# ggsave("FullTracked_RHat.jpeg", width = 8, height = 8, units = "in")
+# 
+# 
+# ### WMD and Time Specific Abundance Rhat
+# # Adult
+# N.A.rhat <- outputs %>% 
+#   filter(substr(X,1,3) == "N.A") %>%
+#   mutate(WMD = str_extract(X, "[:digit:]+")) %>%
+#   mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
+#   dplyr::select(Year, Rhat, WMD)
+# ggplot(data = N.A.rhat, aes(x = Rhat)) +
+#   geom_histogram() +
+#   xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
+#   labs(title = "WMD and Time Specific N.A Convergence")
+# ggsave("N_A_RHat.jpeg", width = 8, height = 8, units = "in")
+# 
+# 
+# #Juvenile
+# N.J.rhat <- outputs %>% 
+#   filter(substr(X,1,3) == "N.J") %>%
+#   mutate(WMD = str_extract(X, "[:digit:]+")) %>%
+#   mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
+#   dplyr::select(Year, Rhat, WMD)
+# ggplot(data = N.J.rhat, aes(x = Rhat)) +
+#   geom_histogram() +
+#   xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
+#   labs(title = "WMD and Time Specific N.J Convergence")
+# ggsave("N_J_RHat.jpeg", width = 8, height = 8, units = "in")
+# 
+# 
+# ### Recruitment
+# R.rhat <- outputs %>% 
+#   filter(substr(X,1,2) == "R[") %>%
+#   mutate(WMD = str_extract(X, "[:digit:]+")) %>%
+#   mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
+#   dplyr::select(Year, Rhat, WMD)
+# ggplot(data = R.rhat, aes(x = Rhat)) +
+#   geom_histogram() +
+#   xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
+#   labs(title = "WMD and Time Specific R Convergence")
+# ggsave("R_RHat.jpeg", width = 8, height = 8, units = "in")
+# 
+# 
+# ### WMD and Time Specific Harvest Rate Estimates
+# #Adult
+# HR.A.rhat <- outputs %>% 
+#   filter(substr(X,1,8) == "WMD.HR.A") %>%
+#   mutate(WMD = str_extract(X, "[:digit:]+")) %>%
+#   mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
+#   dplyr::select(Year, Rhat, WMD)
+# ggplot(data = HR.A.rhat, aes(x = Rhat)) +
+#   geom_histogram() +
+#   xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
+#   labs(title = "WMD and Time Specific HR.A Convergence")
+# ggsave("HR_A_RHat.jpeg", width = 8, height = 8, units = "in")
+# 
+# 
+# #Juvenile
+# HR.J.rhat <- outputs %>% 
+#   filter(substr(X,1,8) == "WMD.HR.J") %>%
+#   mutate(WMD = str_extract(X, "[:digit:]+")) %>%
+#   mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
+#   dplyr::select(Year, Rhat, WMD)
+# ggplot(data = HR.J.rhat, aes(x = Rhat)) +
+#   geom_histogram() +
+#   xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
+#   labs(title = "WMD and Time Specific HR.J Convergence")
+# ggsave("HR_J_RHat.jpeg", width = 8, height = 8, units = "in")
+# 
+# 
+# ### WMD and Time Specific Non Harvest Survival Estimates
+# # Adult
+# S.A.rhat <- outputs %>% 
+#   filter(substr(X,1,8) == "totalS.A") %>%
+#   mutate(WMD = str_extract(X, "[:digit:]+")) %>%
+#   mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
+#   dplyr::select(Year, Rhat, WMD)
+# ggplot(data = S.A.rhat, aes(x = Rhat)) +
+#   geom_histogram() +
+#   xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
+#   labs(title = "WMD and Time Specific S.A Convergence")
+# ggsave("S_A_RHat.jpeg", width = 8, height = 8, units = "in")
+# 
+# 
+# #Juvenile
+# S.J.rhat <- outputs %>% 
+#   filter(substr(X,1,8) == "totalS.J") %>%
+#   mutate(WMD = str_extract(X, "[:digit:]+")) %>%
+#   mutate(Year = 2013 + as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
+#   dplyr::select(Year, Rhat, WMD)
+# ggplot(data = S.J.rhat, aes(x = Rhat)) +
+#   geom_histogram() +
+#   xlim(min(outputs$Rhat) - .1, ifelse(max(outputs$Rhat) > 2, max(outputs$Rhat) + .3, 2)) +
+#   labs(title = "WMD and Time Specific S.J Convergence")
+# ggsave("S_J_RHat.jpeg", width = 8, height = 8, units = "in")

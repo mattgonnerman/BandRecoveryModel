@@ -1,50 +1,53 @@
-#Only estimate 1 HR in the band recovery model, keep temporal variation.
 function(){##############################################################################################
-  ### Weekly Survival Rate ###
-  alpha_s ~ dbeta(1,1)
-  intercept_s <- logit(alpha_s)
-  # beta_F_s ~ dunif(0,1) #Effect of sex on WSR (Male reference)
-  # beta_A_s ~ dunif(0,1) #Effect of age on WSR (Juv reference)
-  # beta_A_F_s ~ dunif(0,1) #Interaction term for Age/Sex(Male Juv reference)
-  # beta_S2W_s ~ dunif(0,1) #Effect of S2W (W2S reference)
-  # for(i in sampledwmd){beta_wmd_s[i] ~ dunif(0,1)} #Effect of wmd (W2S reference)
-  beta_F_s ~ dnorm(0,.01) #Effect of sex on WSR (Male reference)
-  beta_A_s ~ dnorm(0,.01) #Effect of age on WSR (Juv reference)
-  beta_A_F_s ~ dnorm(0,.01) #Interaction term for Age/Sex(Male Juv reference)
-  beta_S2W_s ~ dnorm(0,.01) #Effect of S2W (W2S reference)
-  for(i in sampledwmd){beta_wmd_s[i] ~ dnorm(0,.01)} #Effect of wmd (W2S reference)
+  # ### Weekly Survival Rate ###
+  alpha_m ~ dbeta(1,1)
+  intercept_m <- cloglog(alpha_m)
+  beta_F_m ~ dnorm(0,.01) #Effect of sex on WSR (Male reference)
+  beta_A_m ~ dnorm(0,.01) #Effect of age on WSR (Juv reference)
+  beta_A_F_m ~ dnorm(0,.01) #Interaction term for Age/Sex(Male Juv reference)
+  beta_S2W_m ~ dnorm(0,.01) #Effect of S2W (W2S reference)
+  beta_W2S_m ~ dnorm(0,.01) #Effect of S2W (W2S reference)
+  for(i in sampledwmd){beta_wmd_m[i] ~ dnorm(0,.01)} #Effect of wmd (W2S reference)
   
   #WSR
   for(i in 1:nvisit){
-    eta[i] <- intercept_s +
-      beta_F_s*wsr_sex[i] + beta_A_s*wsr_age[i] + beta_A_F_s*wsr_age[i]*wsr_sex[i] +
-      beta_S2W_s*wsr_time[i] + beta_wmd_s[wsr_wmd[i]]
-    logit(phi[i])<-eta[i] # anti-logit to determine the daily survival rate
-    mu[i]<-pow(phi[i],interval[i]) # period survival is DSR raised to the interval
+    eta[i] <- intercept_m +
+      beta_F_m*wsr_sex[i] + beta_A_m*wsr_age[i] + beta_A_F_m*wsr_age[i]*wsr_sex[i] +
+      beta_S2W_m*wsr_S2W[i] + beta_W2S_m*wsr_W2S[i] + beta_wmd_m[wsr_wmd[i]]
+    cloglog(phi[i])<-eta[i] # anti-logit to determine the daily survival rate
+    mu[i]<- exp(-(interval[i]*phi[i])) # period survival is DSR raised to the interval
     succ[i]~dbern(mu[i])  # the data is distributed as bernoulli with period survival as the mean
   }
+  
   
   ##############################################################################################
   ### Band Recovery ###
   alpha_hr ~ dbeta(1,1)
-  intercept_hr <- logit(alpha_hr)
-  # beta_A_hr ~ dunif(0,1) #Effect of Age on band recovery (Juv reference)
-  # beta_spp ~ dunif(0,1)
+  intercept_hr <- cloglog(alpha_hr)
+  for(i in 1:n.years.br){beta_year[i] ~ dnorm(0,.01)} #Effect of wmd (W2S reference)
   beta_A_hr ~ dnorm(0,.01) #Effect of Age on band recovery (Juv reference)
   
   #Specify period specific survival/band recovery
   for(j in 1:nind){
     for(t in f[j]:n.occasions){
       #Survival Model
-      logit(s.br[j,t]) <- intercept_s +
-        beta_A_s*br_age[j,t] + beta_S2W_s*br_s2w[j,t] + beta_wmd_s[br_wmd[j]]
+      cloglog(m.br[j,t]) <- intercept_m + beta_A_m*br_age_s[j,t] + 
+        beta_W2S_m*br_w2s[j,t] + beta_S2W_m*br_s2w[j,t] + beta_wmd_m[br_wmd[j]]
+      # logit(s.br[j,t]) <- intercept_s +
+      #   beta_A_s*br_age_s[j,t] + beta_S2W_s*br_s2w[j,t] + beta_wmd_s[br_wmd[j]]
       #Band Recovery Model
-      logit(hr.br[j,t]) <- intercept_hr +
-        beta_A_hr*br_age[j,t] + w.tilde[cap.site[j]] + e.cap[cap.site[j]]
+      #Years Separate
+      cloglog(hr.br[j,t]) <- intercept_hr +
+        beta_A_hr*br_age_hr[j,t] + beta_year[br_year[t]] +
+        w.tilde[cap.site[j]] + e.cap[cap.site[j]]
+      # #Combine years
+      # logit(hr.br[j,t]) <- intercept_hr + beta_A_hr*br_age[j,t] + w.tilde[cap.site[j]] + e.cap[cap.site[j]]
       
-      s[j,t] <- ifelse(t == f[j], pow(s.br[j,t], weeks2harv[j]),
-                       ifelse(t == 1 || t == 3 || t == 5, pow(s.br[j,t], 11), pow(s.br[j,t], 36)))
-      hr[j,t] <- ifelse(t == 1 || t == 3 || t == 5, 0, hr.br[j,t])
+      s[j,t] <- ifelse(t == f[j], exp(-(m.br[j,t]*weeks2harv[j])),
+                       ifelse(br_season[t] == 1, exp(-(11*m.br[j,t])), exp(-(36*m.br[j,t]))
+                       )
+      )
+      hr[j,t] <- ifelse(br_season[t] == 1, 0, hr.br[j,t])
       
     } #t
   } #i
@@ -71,6 +74,7 @@ function(){#####################################################################
       w[k,t] <- z[k,t]-y[k,t] #True latent survival state
     } #t
   } #k
+  
   
   ##############################################################################################
   ### Spatial Predictive Process ###
@@ -101,39 +105,46 @@ function(){#####################################################################
     correction[i] = t(C.s.star[i,1:N.knot])%*%C.star.inv[1:N.knot,1:N.knot]%*%C.s.star[i,1:N.knot]
   }
   
-  ##############################################################################################
-  ### Derived Parameters ###
-  #Capture Site specific harvest rates
-  for(i in 1:N.cap){
-    logit(HR.A.cap[i]) <- intercept_hr + beta_A_hr + w.tilde[i] + e.cap[i]
-    logit(HR.J.cap[i]) <- intercept_hr + w.tilde[i] + e.cap[i]
-  }
   
+  ##############################################################################################
+  ### Derived Parameters - HR Combined Years ###
   #Knot specific harvest rates
   for(i in 1:N.knot){
-    logit(HR.A.knot[i]) <- intercept_hr + beta_A_hr + w.tilde.star[i]
-    logit(HR.J.knot[i]) <- intercept_hr + w.tilde.star[i]
+    for(j in 1:n.years.br){
+      cloglog(HR.A.knot[i,j]) <- intercept_hr + beta_year[j] + beta_A_hr + w.tilde.star[i]
+      cloglog(HR.J.knot[i,j]) <- intercept_hr + beta_year[j] + w.tilde.star[i]
+    }
   }
   
   ### WMD Specific Harvest Rates
   for(i in 1:N.wmd){
-    mean.WMD.HR.J[WMD.id[i]] <- mean(HR.J.knot[WMD.matrix[i, 1:WMD.vec[i]]])
-    mean.WMD.HR.A[WMD.id[i]] <- mean(HR.A.knot[WMD.matrix[i, 1:WMD.vec[i]]])
+    for(j in 1:n.years.br){
+      WMD.HR.A[WMD.id[i],j] <- mean(HR.A.knot[WMD.matrix[i, 1:WMD.vec[i]],j])
+      WMD.HR.J[WMD.id[i],j] <- mean(HR.J.knot[WMD.matrix[i, 1:WMD.vec[i]],j])
+    }
+    
+    mean.WMD.HR.A[WMD.id[i]] <- mean(WMD.HR.A[WMD.id[i],])
+    mean.WMD.HR.J[WMD.id[i]] <- mean(WMD.HR.J[WMD.id[i],])
   }
   
   ### Period Specific Survival
   for(i in sampledwmd){
-    logit(WSR_M_J_S2W[i]) <- intercept_s + beta_S2W_s + beta_wmd_s[i]
-    logit(WSR_M_A_S2W[i]) <- intercept_s + beta_A_s + beta_S2W_s + beta_wmd_s[i]
-    logit(WSR_M_J_W2S[i]) <- intercept_s + beta_wmd_s[i]
-    logit(WSR_M_A_W2S[i]) <- intercept_s + beta_A_s + beta_wmd_s[i]
+    cloglog(m_M_J_S2W[i]) <- intercept_m + beta_S2W_m + beta_wmd_m[i]
+    cloglog(m_M_A_S2W[i]) <- intercept_m + beta_S2W_m + beta_wmd_m[i] + beta_A_m 
+    cloglog(m_M_J_W2S[i]) <- intercept_m + beta_W2S_m + beta_wmd_m[i]
+    cloglog(m_M_A_W2S[i]) <- intercept_m + beta_W2S_m + beta_wmd_m[i] + beta_A_m 
+    
+    WSR_M_J_S2W[i] <- exp(-(m_M_J_S2W[i]))
+    WSR_M_A_S2W[i] <- exp(-(m_M_A_S2W[i]))
+    WSR_M_J_W2S[i] <- exp(-(m_M_J_W2S[i]))
+    WSR_M_A_W2S[i] <- exp(-(m_M_A_W2S[i]))
   }
   
-  #Averaged Period Specific Survival for all WMDs sampled
-  S_M_J_S2W <- pow(mean(WSR_M_J_S2W[sampledwmd]), 36)
-  S_M_A_S2W <- pow(mean(WSR_M_A_S2W[sampledwmd]), 36)
-  S_M_J_W2S <- pow(mean(WSR_M_J_W2S[sampledwmd]), 11)
-  S_M_A_W2S <- pow(mean(WSR_M_A_W2S[sampledwmd]), 11)
+  #Survival Estiamtes
+  S_M_J_S2W <- exp(-(36 * mean(m_M_J_S2W[sampledwmd])))
+  S_M_A_S2W <- exp(-(36 * mean(m_M_A_S2W[sampledwmd])))
+  S_M_J_W2S <- exp(-(11 * mean(m_M_J_W2S[sampledwmd])))
+  S_M_A_W2S <- exp(-(11 * mean(m_M_A_W2S[sampledwmd])))
   
   #Average Non Harvest Survival
   mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W

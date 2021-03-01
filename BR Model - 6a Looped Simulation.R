@@ -4,6 +4,23 @@ require(tidyr)
 require(miscTools)
 require(ggplot2)
 
+#Simplified loop, broken into multiple scripts
+#Saves individual loop outputs to their own files
+for(looprun in 3:10){
+  source(file = "BR Model - 5d Simulated Data.R")
+  # #MCMC settings
+  ni <- 10000 #number of iterations
+  nt <- 8 #thinning
+  nb <- 5000 #burn in period
+  nc <- 5 #number of chains
+  source(file = "BR Model - 3j Execute JAGS.R") #SS with no year difference (built from 3g)
+  source(file = "BR Model - 7 Individual Simulation Results.R")
+}
+
+
+
+
+
 # source(file = "BR Model - 5 Simulated Data.R")
 # source(file = "BR Model - 5c Simulated Data.R") #Frozen at 2g to preserve code
 source(file = "BR Model - 5d Simulated Data.R")
