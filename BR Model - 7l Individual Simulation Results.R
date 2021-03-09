@@ -51,11 +51,8 @@ N.J.total <- data.frame(mean = colSums(N.J.est[2:ncol(N.J.est)]),
 #   pivot_wider(names_from = c(Year), values_from = mean)
 
 #Individual R for Year Only
-R.long <- outputs %>% 
-  filter(substr(X,1,2) == "R[") %>%
-  mutate(Year = str_extract(X, "[:digit:]+")) %>%
-  dplyr::select(Year, mean)
-
+R.est <- outputs %>% 
+  filter(X == "R")
 
 ### WMD and Time Specific Harvest Rate Estimates
 #Save HR estimates
@@ -260,9 +257,9 @@ N.bias.J.diff <- (as.data.frame(real.N.J) - as.data.frame(N.J.est)[,-1])
 
 #Estimate Bias between realized and estimated R
 # R.bias <- colMeans(r.vector - R.est[,-1])
-R.bias <- r.vector - R.long$mean
+R.bias <- mean(r.vector) - R.est$mean
 
-sink(paste("BiasResults - SingleRun - 3", modelID ," Trial ",looprun,".csv", sep = ""))
+sink(paste("BiasResults - SingleRun - 3L Trial ",looprun,".csv", sep = ""))
 cat(paste("Years BR Data:", n.band.years, sep = " "))
 cat('\n')
 cat(paste("Number of Individuals in BR Data:", nbandind, sep = " "))

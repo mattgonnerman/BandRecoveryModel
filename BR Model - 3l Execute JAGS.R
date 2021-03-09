@@ -185,9 +185,7 @@ if(simrun != "Y"){
   
   # alpha.r.init <- c()
   # alpha.r.init[1:nrow(WMD.matrix)]<- 0.6931472
-  alpha.r.init <- matrix(0.6931472, 
-                         nrow = nrow(WMD.matrix), 
-                         ncol = ncol(totharv.A)-1)
+  alpha.r.init <- 0.6931472
   
   N.A.init.c1 <- N.A.init
   N.A.init.c1[,2:ncol(N.A.init)] <- NA
@@ -233,7 +231,7 @@ names_for_parallel <- c("EH_raw",
 # nc <- 3 #number of chains
 
 #Model for JAGS
-br_w_as_model <- source(file = "BR Model - 2j JAGS Model Code - 2g with SS no ind HR.R")$value
+br_w_as_model <- source(file = "BR Model - 2l JAGS Model Code - Total Pooling of R.R")$value
 
 
 ### Run Model ###
@@ -257,7 +255,7 @@ BR_w_SPP_output <- jags.parallel(data = dat,
                         n.chains = nc,
                         export_obj_names = names_for_parallel) 
 
-write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3J_output.csv")
+write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3L_output.csv")
 
 # recompile(BR_w_SPP_output)
 # BR_w_SPP_output.upd <- autojags(BR_w_SPP_output, n.update = 4, Rhat = 1.1, n.iter = 5000, n.thin = 1)

@@ -524,16 +524,16 @@ wsr_adult <- wsr_adult1[!is.na(wsr_adult1)]
 # wsr_adult <- ifelse(wsr_adult == 1, 0, 1) #This is because you stupidly coded the simulation so 1 is JUV but in the model 1 is Adult
 
 
-#Sex Vector for JAGS
-WSR.sex1 <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr+1)
-for(i in 1:nrow(WSR.sex1)){
-  WSR.sex1[i,] <- WSR.ind.cap$Sex[i]
-}
-WSR.sex <- WSR.sex1
-WSR.sex[is.na(EH.wsr.1)] <- NA
-WSR.sex <- WSR.sex[,-c(1)]
-wsr_sex1 <- as.vector(t(WSR.sex))
-wsr_sex <- wsr_sex1[!is.na(wsr_sex1)]
+# #Sex Vector for JAGS
+# WSR.sex1 <- matrix(NA, nrow = ntelemind, ncol = n.occasions.wsr+1)
+# for(i in 1:nrow(WSR.sex1)){
+#   WSR.sex1[i,] <- WSR.ind.cap$Sex[i]
+# }
+# WSR.sex <- WSR.sex1
+# WSR.sex[is.na(EH.wsr.1)] <- NA
+# WSR.sex <- WSR.sex[,-c(1)]
+# wsr_sex1 <- as.vector(t(WSR.sex))
+# wsr_sex <- wsr_sex1[!is.na(wsr_sex1)]
 
 
 #Create vector of which Region each turkey was captured in
@@ -701,18 +701,16 @@ totharv.J <- matrix(NA, nrow = C*D, ncol = n.years.TH)
 N.A[,1] <- sample(min.N.A.1:max.N.A.1, C*D, replace = T)
 N.J[,1] <- sample(min.N.J.1:max.N.J.1, C*D, replace = T)
 
-r.matrix <- matrix(NA, nrow = C*D, ncol = n.years.TH)
-r.matrix[,1] <- rnorm(C*D, mean.R, sd.R)
-for(i in 1:nrow(r.matrix)){
+
+r.vector <- rnorm(n.years.TH-1, mean.R, sd.R)
+for(i in 1:(C*D)){
   totharv.A[i,1] <- rbinom(1, N.A[i,1], SS.HR.A[i,1])
   totharv.J[i,1] <- rbinom(1, N.J[i,1], SS.HR.J[i,1])
   
   for(j in 2:n.years.TH){
-    r.matrix[i,j] <- rnorm(1,r.matrix[i,1],.01)
-    
     N.A[i,j] <- rbinom(1, (N.A[i,j-1] - totharv.A[i,j-1]), Region_Mean_WSR$NonHarv.S.A[i]) + 
       rbinom(1, (N.J[i,j-1] - totharv.J[i,j-1]), Region_Mean_WSR$NonHarv.S.J[i])
-    N.J[i,j] <- rpois(1,r.matrix[i,j]*N.A[i,j-1])
+    N.J[i,j] <- rpois(1,r.vector[j-1]*N.A[i,j-1])
     
     totharv.A[i,j] <- rbinom(1, N.A[i,j], SS.HR.A[i,j])
     totharv.J[i,j] <- rbinom(1, N.J[i,j], SS.HR.J[i,j])

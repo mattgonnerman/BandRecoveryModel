@@ -2,17 +2,17 @@ function(){#####################################################################
   # ### Weekly Survival Rate ###
   alpha_m ~ dbeta(1,1)
   intercept_m <- cloglog(alpha_m)
-  beta_F_m ~ dnorm(0,.01) #Effect of sex on WSR (Male reference)
+  # beta_F_m ~ dnorm(0,.01) #Effect of sex on WSR (Male reference)
   beta_A_m ~ dnorm(0,.01) #Effect of age on WSR (Juv reference)
-  beta_A_F_m ~ dnorm(0,.01) #Interaction term for Age/Sex(Male Juv reference)
+  # beta_A_F_m ~ dnorm(0,.01) #Interaction term for Age/Sex(Male Juv reference)
   beta_S2W_m ~ dnorm(0,.01) #Effect of S2W (W2S reference)
   beta_W2S_m ~ dnorm(0,.01) #Effect of S2W (W2S reference)
   for(i in sampledwmd){beta_wmd_m[i] ~ dnorm(0,.01)} #Effect of wmd (W2S reference)
   
   #WSR
   for(i in 1:nvisit){
-    eta[i] <- intercept_m +
-      beta_F_m*wsr_sex[i] + beta_A_m*wsr_age[i] + beta_A_F_m*wsr_age[i]*wsr_sex[i] +
+    eta[i] <- intercept_m + beta_A_m*wsr_age[i] + 
+      # beta_F_m*wsr_sex[i] + beta_A_F_m*wsr_age[i]*wsr_sex[i] +
       beta_S2W_m*wsr_S2W[i] + beta_W2S_m*wsr_W2S[i] + beta_wmd_m[wsr_wmd[i]]
     cloglog(phi[i])<-eta[i] # anti-logit to determine the daily survival rate
     mu[i]<- exp(-(interval[i]*phi[i])) # period survival is DSR raised to the interval
@@ -146,9 +146,6 @@ function(){#####################################################################
   S_M_J_W2S <- exp(-(11 * mean(m_M_J_W2S[sampledwmd])))
   S_M_A_W2S <- exp(-(11 * mean(m_M_A_W2S[sampledwmd])))
   
-  #Average Non Harvest Survival
-  mean.AnnualS.A <- S_M_A_W2S * S_M_A_S2W
-  mean.AnnualS.J <- S_M_J_W2S * S_M_J_S2W
   
   # ##############################################################################################
   # ### State-Space Abundance ###

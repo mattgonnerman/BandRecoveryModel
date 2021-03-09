@@ -16,7 +16,7 @@ require(R2jags)
 dat <- list( succ = succ, #Adult Survival
              interval = interval, #Adult Survival
              nvisit = length(succ), #Adult Survival
-             wsr_sex = wsr_sex, #Adult Survival
+             # wsr_sex = wsr_sex, #Adult Survival
              wsr_age = wsr_adult, #Adult Survival
              wsr_S2W = wsr_S2W, #Adult Survival
              wsr_W2S = wsr_W2S,

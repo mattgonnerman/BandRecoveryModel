@@ -41,18 +41,18 @@ N.J.total <- data.frame(mean = colSums(N.J.est[2:ncol(N.J.est)]),
 
 
 ### Recruitment
-# #Individual R for WMD and Year
-# R.long <- outputs %>% 
-#   filter(substr(X,1,2) == "R[") %>%
-#   mutate(WMD = str_extract(X, "[:digit:]+")) %>%
-#   mutate(Year = as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
-#   dplyr::select(Year, mean, WMD)
-# R.est <- R.long %>%
-#   pivot_wider(names_from = c(Year), values_from = mean)
+#Individual R for WMD and Year
+R.long <- outputs %>%
+  filter(substr(X,1,2) == "r[") %>%
+  mutate(WMD = str_extract(X, "[:digit:]+")) %>%
+  mutate(Year = as.numeric(substr(str_extract(X, "[,^][:digit:]+"), 2,4))) %>%
+  dplyr::select(Year, mean, WMD)
+R.est <- R.long %>%
+  pivot_wider(names_from = c(Year), values_from = mean)
 
 #Individual R for Year Only
 R.long <- outputs %>% 
-  filter(substr(X,1,2) == "R[") %>%
+  filter(substr(X,1,2) == "r[") %>%
   mutate(Year = str_extract(X, "[:digit:]+")) %>%
   dplyr::select(Year, mean)
 
@@ -262,7 +262,7 @@ N.bias.J.diff <- (as.data.frame(real.N.J) - as.data.frame(N.J.est)[,-1])
 # R.bias <- colMeans(r.vector - R.est[,-1])
 R.bias <- r.vector - R.long$mean
 
-sink(paste("BiasResults - SingleRun - 3", modelID ," Trial ",looprun,".csv", sep = ""))
+sink(paste("BiasResults - SingleRun - 3D Trial ",looprun,".csv", sep = ""))
 cat(paste("Years BR Data:", n.band.years, sep = " "))
 cat('\n')
 cat(paste("Number of Individuals in BR Data:", nbandind, sep = " "))
@@ -340,11 +340,11 @@ cat('\n')
 write.csv(as.data.frame(N.J.est)[,-1])
 cat('\n')
 cat('\n')
-cat("Mean R Bias by year")
-cat('\n')
-write.csv(R.bias)
-cat('\n')
-cat('\n')
+# cat("Mean R Bias by year")
+# cat('\n')
+# write.csv(R.bias)
+# cat('\n')
+# cat('\n')
 sink()
 
 

@@ -4,7 +4,8 @@ setwd("E:/GitHub/BandRecoveryModel")
 # source(file = "BR Model - 1a Data Management.R") #Actual Turkey Data
 # source(file = "BR Model - 5 Simulated Data.R") # Simulated Data - Spatially Correlated using Gaussian Random Field
 # source(file = "BR Model - 5c Simulated Data.R") # Frozen, do not change
-source(file = "BR Model - 5d Simulated Data.R") #
+# source(file = "BR Model - 5d Simulated Data.R") # R pools by wmd
+source(file = "BR Model - 5e Simulated Data.R") # Altered the R to pool annually
 
 # #MCMC settings
 ni <- 10000 #number of iterations
