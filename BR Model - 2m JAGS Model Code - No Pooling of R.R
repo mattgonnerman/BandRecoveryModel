@@ -158,7 +158,7 @@ function(){#####################################################################
     
     # Total Annual Survival Probability #Temporal Variation in S and HR
     totalS.A[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W *(1-mean.WMD.HR.A[WMD.id[i]]) #
-    totalS.J[WMD.id[i]] <- S_M_A_W2S * S_M_A_S2W *(1-mean.WMD.HR.J[WMD.id[i]]) # J transition to A after 1st hunting season, hence S.A used
+    totalS.J[WMD.id[i]] <- S_M_A_W2S * S_M_J_S2W *(1-mean.WMD.HR.J[WMD.id[i]]) # J transition to A at 2nd capture season, hence S.A used
 
     #Need to specify N[t=1], needs to be a whole number.
     #th.year1 are just the harvest totals from year 1

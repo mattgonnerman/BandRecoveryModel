@@ -235,8 +235,8 @@ mean.real.WSR.J <- mean(c(realized.WSR.br.J, mean.real.WSR.wsr.J))
 mean.real.WSR <- c(mean.real.WSR.A, mean.real.WSR.J)
 
 #Realized N from Total Harvest Data
-real.N.A <- N.A
-real.N.J <- N.J
+real.N.A <- N.A[,6:ncol(N.A)]
+real.N.J <- N.J[,6:ncol(N.J)]
 
 
 ###############################################################################
@@ -260,7 +260,7 @@ N.bias.J.diff <- (as.data.frame(real.N.J) - as.data.frame(N.J.est)[,-1])
 
 #Estimate Bias between realized and estimated R
 # R.bias <- colMeans(r.vector - R.est[,-1])
-R.bias <- matrix(r.vector, ncol = length(r.vector), nrow = C*D, byrow = T) - as.matrix(R.est[,-1])
+R.bias <- matrix(r.vector[6:length(r.vector)], ncol = length(r.vector)-5, nrow = C*D, byrow = T) - as.matrix(R.est[,-1])
 
 sink(paste("BiasResults - SingleRun - 3M Trial ",looprun,".csv", sep = ""))
 cat(paste("Years BR Data:", n.band.years, sep = " "))
@@ -318,6 +318,11 @@ cat('\n')
 cat("Average Bias by Year (absolute value) - N.J")
 cat('\n')
 write.csv(colMeans(abs(N.bias.J.diff)))
+cat('\n')
+cat('\n')
+cat("Bias by Year - N.J")
+cat('\n')
+write.csv(N.bias.J.diff)
 cat('\n')
 cat('\n')
 cat("Real N.A")

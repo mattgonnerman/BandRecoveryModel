@@ -1,0 +1,48 @@
+Average Estimated HR
+"","V1","V2","V3","V4","V5","V6","V7","V8"
+"1",NA,NA,NA,NA,NA,NA,NA,NA
+"2",NA,NA,NA,NA,NA,NA,NA,NA
+"3",NA,NA,NA,NA,NA,NA,NA,NA
+"4",NA,NA,NA,NA,NA,NA,NA,NA
+"5",NA,NA,NA,NA,NA,NA,NA,NA
+
+
+Average HR Bias (Realized - Estimated)
+
+
+Individual Simulation Bias - HR
+"","x"
+"1",NA
+"2",NA
+"3",NA
+"4",NA
+"5",NA
+"6",NA
+"7",NA
+"8",NA
+
+
+Average Estimated WSR
+"","V1","V2"
+"1",NA,NA
+"2",NA,NA
+"3",NA,NA
+"4",NA,NA
+"5",NA,NA
+
+
+Average WSR Bias (Realized - Estimated)
+"","Age","WSRMeanBias","WSRSDBias"
+"1","A",NA,NA
+"2","J",NA,NA
+
+
+Individual Simulation Bias - WSR
+"","V1","V2"
+"1",NA,NA
+"2",NA,NA
+"3",NA,NA
+"4",NA,NA
+"5",NA,NA
+
+
