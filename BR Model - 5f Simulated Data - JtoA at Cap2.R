@@ -731,7 +731,7 @@ require(ggplot2)
 require(tidyr)
 N.A.long <- as.data.frame(N.A) %>%
   mutate(WMD = as.factor(1:25)) %>%
-  pivot_longer(cols = 1:(ncol(N.A.long)-1)) %>%
+  pivot_longer(cols = 1:(ncol(N.A)-1)) %>%
   mutate(Year = as.numeric(sub(".", "", name))) %>%
   mutate(WMD = as.factor(WMD))
 ggplot(data = N.A.long, aes(x =Year, y = value, group = WMD)) +
@@ -739,7 +739,7 @@ ggplot(data = N.A.long, aes(x =Year, y = value, group = WMD)) +
 # ggsave("N.A.example.jpeg", width = 12, height = 8, units = "in")
 N.J.long <- as.data.frame(N.J) %>%
   mutate(WMD = as.factor(1:25)) %>%
-  pivot_longer(cols = 1:(ncol(N.J.long)-1)) %>%
+  pivot_longer(cols = 1:(ncol(N.J)-1)) %>%
   mutate(Year = as.numeric(sub(".", "", name))) %>%
   mutate(WMD = as.factor(WMD))
 ggplot(data = N.J.long, aes(x =Year, y = value, group = WMD)) +
