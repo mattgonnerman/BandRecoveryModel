@@ -179,10 +179,10 @@ true.S.br.check <- EH_list_br[[2]] #Actual survival from BR
 EH.br.check <- EH_list_br[[1]] #EH from BR
 EH.br.check.adult <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
 EH.br.check.juv <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
-S.br.check.adult.C2H <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
-S.br.check.juv.C2H <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
-S.br.check.adult.H2C <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
-S.br.check.juv.H2W <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
+S.br.check.adult <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
+S.br.check.juv <- matrix(NA, nrow = nbandind, ncol = n.band.years*2)
+S.br.check.juv.preC1 <- matrix(NA, nrow = nbandind, ncol = n.band.years*2) #To account for the later transition of J
+
 for(checki in 1:nbandind){
   for(checkj in 1:(n.band.years*2)){
     if(br_adult_hr[checki, checkj] == 1){EH.br.check.adult[checki, checkj] <- EH.br.check[checki, checkj]}
@@ -190,26 +190,36 @@ for(checki in 1:nbandind){
     if(br_adult_hr[checki, checkj] == 1){S.br.check.adult[checki, checkj] <- true.S.br.check[checki, checkj]}
     if(br_adult_hr[checki, checkj] == 0){S.br.check.juv[checki, checkj] <- true.S.br.check[checki, checkj]}
   }
-  for(checkj in 1:((n.band.years*2)-1)){ #Addition for when J transition at 2nd capture season
-    if(br_adult_hr[checki, checkj] == 1){S.br.check.adult[checki, checkj + 1] <- true.S.br.check[checki, checkj + 1]}
-    if(br_adult_hr[checki, checkj] == 0){S.br.check.juv[checki, checkj + 1] <- true.S.br.check[checki, checkj + 1]}
+  for(checkj in 2:(n.band.years*2)){ #Addition for when J transition at 2nd capture season
+    if(br_adult_hr[checki, checkj-1] == 0 & EH.br.check[checki, checkj] == 0){
+        S.br.check.juv.preC1[checki, checkj] <- true.S.br.check[checki, checkj]
+    }
   }
 }
 
-#Adult W2S Survival = #Adults Alive at Beginning of Harvest
+S.br.check.juv.preC1[,seq(2,(n.band.years*2),2)] <- NA
 
-
-
-EH.br.W2S.check.adult <- EH.br.check.adult
-EH.br.W2S.check.adult[,seq(1,(n.band.years*2),2)] <- 0
-W2S.br.A.totals <- colSums(S.br.check.adult + EH.br.W2S.check.adult, na.rm = T)
-realized.WSR.br.A.W2S <- (W2S.br.A.totals[seq(2,(n.band.years*2),2)]/W2S.br.A.totals[seq(1,(n.band.years*2),2)])^(1/11)
-
+##Juvenile W2S Survival
 EH.br.W2S.check.juv <- EH.br.check.juv
 EH.br.W2S.check.juv[,seq(1,(n.band.years*2),2)] <- 0
-W2S.br.J.totals <- colSums(S.br.check.juv + EH.br.W2S.check.juv, na.rm = T)
+#Number Juveniles alive at end of W2S
+#Need to add individuals who were shot in H
+W2S.br.J.totals <- colSums(S.br.check.juv + EH.br.W2S.check.juv, na.rm = T) 
 realized.WSR.br.J.W2S <- (W2S.br.J.totals[seq(2,(n.band.years*2),2)]/W2S.br.J.totals[seq(1,(n.band.years*2),2)])^(1/11)
 realized.WSR.br.J <- mean(realized.WSR.br.J.W2S)
+
+##Juvenile S2W Survival
+S.br.check.juv.postH <- colSums(S.br.check.juv, na.rm = T)
+S.br.check.juv.preC <- colSums(S.br.check.juv.preC1, na.rm = T)
+realized.WSR.br.J.W2S <- (S.br.check.juv.preC[seq(3,(n.band.years*2),2)]/S.br.check.juv.postH[seq(2,(n.band.years*2-1),2)])^(1/36)
+
+#Adult W2S Survival
+EH.br.W2S.check.adult <- EH.br.check.adult
+EH.br.W2S.check.adult[,seq(1,(n.band.years*2),2)] <- 0
+W2S.br.A.totals <- colSums(S.br.check.adult + EH.br.W2S.check.adult, na.rm = T) #Need to add individuals who were shot in H
+realized.WSR.br.A.W2S <- (W2S.br.A.totals[seq(2,(n.band.years*2),2)]/W2S.br.A.totals[seq(1,(n.band.years*2),2)])^(1/11)
+
+
 
 EH.br.S2W.check.adult <- EH.br.check.adult
 EH.br.S2W.check.adult[,seq(4,(n.band.years*2),2)] <- 0
@@ -246,14 +256,14 @@ for(checki in 1:nrow(WSR.adult)){
 
 true.wsr.A.1 <- colSums(true.WSR.A.check[,1:(ncol(true.WSR.A.check)-1)], na.rm = T)
 true.wsr.A.2 <- colSums(true.WSR.A.check[,2:(ncol(true.WSR.A.check))], na.rm = T)
-mean.real.WSR.wsr[looprun,1] <- sum((true.wsr.A.2/true.wsr.A.1)*(true.wsr.A.1/sum(true.wsr.A.1)), na.rm = T)
+mean.real.WSR.wsr.A <- sum((true.wsr.A.2/true.wsr.A.1)*(true.wsr.A.1/sum(true.wsr.A.1)), na.rm = T)
 true.wsr.J.1 <- colSums(true.WSR.J.check[,1:(ncol(true.WSR.J.check)-1)], na.rm = T)[1:11]
 true.wsr.J.2 <- colSums(true.WSR.J.check[,2:(ncol(true.WSR.J.check))], na.rm = T)[1:11]
-mean.real.WSR.wsr[looprun,2] <- sum((true.wsr.J.2/true.wsr.J.1)*(true.wsr.J.1/sum(true.wsr.J.1)), na.rm = T)
+mean.real.WSR.wsr.J <- sum((true.wsr.J.2/true.wsr.J.1)*(true.wsr.J.1/sum(true.wsr.J.1)), na.rm = T)
 
-mean.real.WSR[looprun,1] <- mean(c(realized.WSR.br.A, mean.real.WSR.wsr.A))
-mean.real.WSR[looprun,2] <- mean(c(realized.WSR.br.J, mean.real.WSR.wsr.J))
-
+mean.real.WSR.A <- mean(c(realized.WSR.br.A, mean.real.WSR.wsr.A))
+mean.real.WSR.J <- mean(c(realized.WSR.br.J, mean.real.WSR.wsr.J))
+mean.real.WSR <- c(mean.real.WSR.A, mean.real.WSR.J)
 
 #Realized N from Total Harvest Data
 real.N.A <- N.A

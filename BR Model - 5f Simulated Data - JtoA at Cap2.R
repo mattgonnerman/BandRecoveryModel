@@ -266,7 +266,7 @@ simul.br <- function(S_H2C.br, S_C2H.br, BR.br, nbandind, yearofcap){
     for (t in (yearofcap[i]*2):n.occasions){
       ts1 <- rbinom(1, 1, S_C2H.br[i,ceiling(t/2)]) #does bird survive from Capture season to harvest
       harvest <- rbinom(1,1, BR.br[i,ceiling(t/2)]) #is bird Harvested
-      ts2 <- rbinom(1, 1, S_H2C.br[i,ceiling(t/2)]) #does bird survive from harvest to capture season
+      ts2 <- rbinom(1, 1, S_H2C.br[i,floor(t/2)]) #does bird survive from harvest to capture season
       
       if(t %% 2 == 0){ #If a hunting occassion
         if(true.S.br[i,t-1] == 0){ # Bird dead at beginning of previous last occasion
@@ -307,7 +307,6 @@ simul.br <- function(S_H2C.br, S_C2H.br, BR.br, nbandind, yearofcap){
             true.S.br[i,t] <- 1 #record survival
           }
         }
-        
       }
     }
   }

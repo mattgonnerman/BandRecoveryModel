@@ -254,8 +254,6 @@ BR_w_SPP_output <- jags.parallel(data = dat,
                         n.chains = nc,
                         export_obj_names = names_for_parallel) 
 
-write.csv(BR_w_SPP_output$BUGSoutput$summary, file = "3M_output.csv")
-
 # recompile(BR_w_SPP_output)
 # BR_w_SPP_output.upd <- autojags(BR_w_SPP_output, n.update = 4, Rhat = 1.1, n.iter = 5000, n.thin = 1)
 # write.csv(BR_w_SPP_output.upd$BUGSoutput$summary, file = "3c_output.csv")

@@ -23,7 +23,8 @@ for(looprun in 1:15){
 
   #SS with no year difference - No Pooling
   source(file = "BR Model - 3m Execute JAGS.R")
-  source(file = "BR Model - 7m Individual Simulation Results.R")
+  # source(file = "BR Model - 7m Individual Simulation Results.R") # For J to A after 1st harvest season
+  source(file = "BR Model - 7m1 Individual Simulation Results.R") # For J to A before 2nd capture
   
   print(paste("Run", looprun, "End Time:", Sys.time(), sep = " "))
 }
