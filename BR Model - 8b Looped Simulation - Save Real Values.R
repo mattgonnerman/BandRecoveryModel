@@ -1,3 +1,5 @@
+### Real Parameter Values ###
+
 require(dplyr)
 require(stringr)
 require(tidyr)
@@ -28,7 +30,9 @@ totalavail.Adult <- colSums(S.check.adult, na.rm = T) + colSums(EH.check.adult, 
 totalavail.Juv <- colSums(S.check.juv, na.rm = T) + colSums(EH.check.juv, na.rm = T)
 true.hr.adult <- colSums(EH.check.adult, na.rm = T)/totalavail.Adult
 true.hr.juv <- colSums(EH.check.juv, na.rm = T)/totalavail.Juv
-true.hr <- c(true.hr.adult,true.hr.juv)
+true.hr <- data.frame(Age = c(rep("A", length(true.hr.adult)),rep("J", length(true.hr.adult))),
+                      Year = rep(1:length(true.hr.adult), 2),
+                      Mean = c(true.hr.adult,true.hr.juv))
 
 
 ### WSR from BR Data
@@ -53,57 +57,34 @@ for(checki in 1:nbandind){
     }
   }
 }
-
 S.br.check.juv.preC1[,seq(2,(n.band.years*2),2)] <- NA
 
 ##Juvenile W2S Survival
 EH.br.W2S.check.juv <- EH.br.check.juv
 EH.br.W2S.check.juv[,seq(1,(n.band.years*2),2)] <- 0
-#Number Juveniles alive at end of W2S
-#Need to add individuals who were shot in H
-W2S.br.J.totals <- colSums(S.br.check.juv + EH.br.W2S.check.juv, na.rm = T) 
-realized.WSR.br.J.W2S1 <- (W2S.br.J.totals[seq(2,(n.band.years*2),2)]/W2S.br.J.totals[seq(1,(n.band.years*2),2)])^(1/11)
-realized.WSR.br.J.W2S <- mean(realized.WSR.br.J.W2S1)
-
+W2S.br.J.totals <- colSums(S.br.check.juv + EH.br.W2S.check.juv, na.rm = T) #Need to add individuals who were shot in H
+realized.WSR.br.J.W2S <- (W2S.br.J.totals[seq(2,(n.band.years*2),2)]/W2S.br.J.totals[seq(1,(n.band.years*2),2)])^(1/11)
 ##Juvenile S2W Survival
 S.br.check.juv.postH <- colSums(S.br.check.juv, na.rm = T)[seq(2,(n.band.years*2-1),2)]
 S.br.check.juv.preC <- colSums(S.br.check.juv.preC1, na.rm = T)[seq(3,(n.band.years*2),2)]
 realized.WSR.br.J.S2W <- (S.br.check.juv.preC/S.br.check.juv.postH)^(1/36)
-
-hr.ind.cap %>%
-  group_by(Adult, CapYear) %>%
-  summarize(Total = n())
-
+#Mean Juvenile Survival
+realized.WSR.br.J <- mean(c(realized.WSR.br.J.W2S,realized.WSR.br.J.S2W))
 
 #Adult W2S Survival
 EH.br.W2S.check.adult <- EH.br.check.adult
 EH.br.W2S.check.adult[,seq(1,(n.band.years*2),2)] <- 0
 W2S.br.A.totals <- colSums(S.br.check.adult + EH.br.W2S.check.adult, na.rm = T) #Need to add individuals who were shot in H
 realized.WSR.br.A.W2S <- (W2S.br.A.totals[seq(2,(n.band.years*2),2)]/W2S.br.A.totals[seq(1,(n.band.years*2),2)])^(1/11)
-
-
-
-EH.br.S2W.check.adult <- EH.br.check.adult
-EH.br.S2W.check.adult[,seq(4,(n.band.years*2),2)] <- 0
-W2S.br.Aalive <- colSums(S.br.check.adult, na.rm = T)[seq(2,(n.band.years*2),2)]
-W2S.br.Jalive <- colSums(S.br.check.juv, na.rm = T)[seq(2,(n.band.years*2),2)]
-W2S.br.AendH <- W2S.br.Aalive + W2S.br.Aalive
-W2S.br.AaliveC <- colSums(S.br.check.adult, na.rm = T)[seq(1,(n.band.years*2),2)]
-W2S.br.Acap <- colSums(EH.br.check.adult, na.rm = T)[seq(1,(n.band.years*2),2)]
-W2S.br.AstartC <- W2S.br.AaliveC - W2S.br.Acap
-realized.WSR.br.A.S2W <- (W2S.br.AstartC[2:n.band.years]/W2S.br.AaliveC[1:(n.band.years-1)])^(1/36)
-mean.real.WSR.br[looprun,1] <- mean(c(realized.WSR.br.A.S2W,realized.WSR.br.A.W2S))
-
-EH.br.S2W.check.juv <- EH.br.check.juv
-EH.br.S2W.check.juv[,seq(4,(n.band.years*2),2)] <- 0
-W2S.br.Aalive <- colSums(S.br.check.juv, na.rm = T)[seq(2,(n.band.years*2),2)]
-W2S.br.Jalive <- colSums(S.br.check.juv, na.rm = T)[seq(2,(n.band.years*2),2)]
-W2S.br.AendH <- W2S.br.Aalive + W2S.br.Aalive
-W2S.br.AaliveC <- colSums(S.br.check.juv, na.rm = T)[seq(1,(n.band.years*2),2)]
-W2S.br.Acap <- colSums(EH.br.check.juv, na.rm = T)[seq(1,(n.band.years*2),2)]
-W2S.br.AstartC <- W2S.br.AaliveC - W2S.br.Acap
-realized.WSR.br.J.S2W <- (W2S.br.JstartC[2:n.band.years]/W2S.br.JaliveC[1:(n.band.years-1)])^(1/36)
-mean.real.WSR.br[looprun,2] <- mean(c(realized.WSR.br.J.S2W,realized.WSR.br.J.W2S))
+#Adult S2W Survival 
+W2S.br.Aalive <- colSums(S.br.check.adult, na.rm = T)[seq(3,(n.band.years*2),2)]
+W2S.br.Jtrans <- colSums(S.br.check.juv.preC1, na.rm = T)[seq(3,(n.band.years*2),2)]
+W2S.br.ACap <- hr.ind.cap %>% filter(Adult==1) %>% group_by(CapYear) %>% summarize(Total = n())
+W2S.br.ASurv <- W2S.br.Aalive - W2S.br.ACap$Total[2:n.band.years] - W2S.br.Jtrans
+W2S.br.Aavail <- colSums(S.br.check.adult, na.rm = T)[seq(2,(n.band.years*2)-1,2)]
+realized.WSR.br.A.S2W <- (W2S.br.ASurv/W2S.br.Aavail)^(1/36)
+#Mean Adult Survival
+realized.WSR.br.A <- mean(c(realized.WSR.br.A.S2W,realized.WSR.br.A.W2S))
 
 
 ### WSR from WSR Data
@@ -128,12 +109,44 @@ mean.real.WSR.wsr.J <- sum((true.wsr.J.2/true.wsr.J.1)*(true.wsr.J.1/sum(true.ws
 ### Combined WSR Average
 mean.real.WSR.A <- mean(c(realized.WSR.br.A, mean.real.WSR.wsr.A))
 mean.real.WSR.J <- mean(c(realized.WSR.br.J, mean.real.WSR.wsr.J))
-mean.real.WSR <- c(mean.real.WSR.A, mean.real.WSR.J)
+mean.real.WSR <- data.frame(Age = c("A", "J"), Mean = c(mean.real.WSR.A, mean.real.WSR.J))
 
 
 ### N Values
-real.N.A <- N.A
-real.N.J <- N.J
+real.N.A <- N.A[,6:ncol(N.A)]
+real.N.J <- N.J[,6:ncol(N.A)]
 
 
 ### R Values
+real.R <- data.frame(Year = 1:(ncol(N.A)-6),
+                     Mean = r.vector[6:(ncol(N.A)-1)])
+
+
+### Save Real Values
+sink(paste("Model Bias Comparison/SampleSize/Trial ",looprun," - RealParameterValues.csv", sep = ""))
+cat("Average Real HR")
+cat('\n')
+write.csv(true.hr, row.names = F)
+cat('\n')
+cat('\n')
+cat("Average Real WSR")
+cat('\n')
+write.csv(mean.real.WSR, row.names = F)
+cat('\n')
+cat('\n')
+cat("Real N.A")
+cat('\n')
+write.csv(real.N.A, row.names = F)
+cat('\n')
+cat('\n')
+cat("Real N.J")
+cat('\n')
+write.csv(real.N.J, row.names = F)
+cat('\n')
+cat('\n')
+cat("Real R")
+cat('\n')
+write.csv(real.R, row.names = F)
+cat('\n')
+cat('\n')
+sink()

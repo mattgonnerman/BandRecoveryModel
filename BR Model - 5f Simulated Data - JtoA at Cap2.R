@@ -57,7 +57,7 @@ nknot <- 10
 # Set Parameters for simulating Region Specific Abundance over time
 n.years.totharv <- 5 + 10 #Number of additional years of total harvest data (will be added on to banding years), 5 is burn in
 hr.TH.year <- rep(0, n.years.totharv)
-for(i in 2:n.years.totharv){
+for(i in 1:n.years.totharv){
   hr.TH.year[i] <- rnorm(1, 0, .05)
 }
 max.N.J.1 <- 1000
@@ -726,21 +726,21 @@ HRnotavail <- 1:n.years.totharv
 
 yearsHRavail-max(HRnotavail)
 
-require(ggplot2)
-require(tidyr)
-N.A.long <- as.data.frame(N.A) %>%
-  mutate(WMD = as.factor(1:25)) %>%
-  pivot_longer(cols = 1:(ncol(N.A)-1)) %>%
-  mutate(Year = as.numeric(sub(".", "", name))) %>%
-  mutate(WMD = as.factor(WMD))
-ggplot(data = N.A.long, aes(x =Year, y = value, group = WMD)) +
-  geom_line(aes(color = WMD), size = 1.3)
-# ggsave("N.A.example.jpeg", width = 12, height = 8, units = "in")
-N.J.long <- as.data.frame(N.J) %>%
-  mutate(WMD = as.factor(1:25)) %>%
-  pivot_longer(cols = 1:(ncol(N.J)-1)) %>%
-  mutate(Year = as.numeric(sub(".", "", name))) %>%
-  mutate(WMD = as.factor(WMD))
-ggplot(data = N.J.long, aes(x =Year, y = value, group = WMD)) +
-  geom_line(aes(color = WMD), size = 1.3)
-# ggsave("N.J.example.jpeg", width = 12, height = 8, units = "in")
+# require(ggplot2)
+# require(tidyr)
+# N.A.long <- as.data.frame(N.A) %>%
+#   mutate(WMD = as.factor(1:25)) %>%
+#   pivot_longer(cols = 1:(ncol(N.A)-1)) %>%
+#   mutate(Year = as.numeric(sub(".", "", name))) %>%
+#   mutate(WMD = as.factor(WMD))
+# ggplot(data = N.A.long, aes(x =Year, y = value, group = WMD)) +
+#   geom_line(aes(color = WMD), size = 1.3)
+# # ggsave("N.A.example.jpeg", width = 12, height = 8, units = "in")
+# N.J.long <- as.data.frame(N.J) %>%
+#   mutate(WMD = as.factor(1:25)) %>%
+#   pivot_longer(cols = 1:(ncol(N.J)-1)) %>%
+#   mutate(Year = as.numeric(sub(".", "", name))) %>%
+#   mutate(WMD = as.factor(WMD))
+# ggplot(data = N.J.long, aes(x =Year, y = value, group = WMD)) +
+#   geom_line(aes(color = WMD), size = 1.3)
+# # ggsave("N.J.example.jpeg", width = 12, height = 8, units = "in")
