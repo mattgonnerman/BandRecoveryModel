@@ -2,19 +2,19 @@
 SimInfo <- data.frame(Name = NA, WMD = NA, Value = NA)
 
 #Number Years Band Recovery Data
-SimInfo[1,] <- c("Years BR Data", NA, n.band.years)
+SimInfo[1,] <- c("YearsBR", NA, n.band.years)
 
 #Number Individuals BR Data
-SimInfo[2,] <- c("NInd BR Data", NA, nbandind)
+SimInfo[2,] <- c("NIndBR", NA, nbandind)
 
 #Additional Years of Total Harvest Data in State Space
-SimInfo[3,] <- c("Years Extra TotHarv Data", NA, n.years.totharv)
+SimInfo[3,] <- c("YearsTotHarv", NA, n.years.totharv)
 
 #Number of Years of WSR Data
-SimInfo[4,] <- c("Years WSR Data", NA, n.years.telem)
+SimInfo[4,] <- c("YearsWSR", NA, n.years.telem)
 
 #Number Individuals WSR Data
-SimInfo[5,] <- c("NInd BR Data", NA, ntelemind)
+SimInfo[5,] <- c("NIndWSR", NA, ntelemind)
 
 #Number of BR Sites per Region
 BR.sites.region <- data.frame(Name = "NSites BR",
@@ -73,4 +73,4 @@ if(looprun == 1){
   mastersiteinfo <- rbind(mastersiteinfo, SimInfo)
 }
 
-write.csv(SimInfo, "Model Bias Comparison/SampleSize/MasterSimInfo.csv", row.names = F)
+write.csv(mastersiteinfo, "Model Bias Comparison/SampleSize/MasterSimInfo.csv", row.names = F)
