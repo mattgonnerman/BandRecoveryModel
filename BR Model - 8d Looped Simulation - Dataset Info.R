@@ -72,3 +72,5 @@ if(looprun == 1){
 }else{
   mastersiteinfo <- rbind(mastersiteinfo, SimInfo)
 }
+
+write.csv(SimInfo, "Model Bias Comparison/SampleSize/MasterSimInfo.csv", row.names = F)
