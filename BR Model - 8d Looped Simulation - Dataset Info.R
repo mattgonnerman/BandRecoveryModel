@@ -5,7 +5,7 @@ SimInfo <- data.frame(Name = NA, WMD = NA, Value = NA)
 SimInfo[1,] <- c("YearsBR", NA, n.band.years)
 
 #Number Individuals BR Data
-SimInfo[2,] <- c("NIndBR", NA, nbandind)
+SimInfo[2,] <- c("TotNIndBR", NA, nbandind)
 
 #Additional Years of Total Harvest Data in State Space
 SimInfo[3,] <- c("YearsTotHarv", NA, n.years.totharv)
@@ -14,7 +14,7 @@ SimInfo[3,] <- c("YearsTotHarv", NA, n.years.totharv)
 SimInfo[4,] <- c("YearsWSR", NA, n.years.telem)
 
 #Number Individuals WSR Data
-SimInfo[5,] <- c("NIndWSR", NA, ntelemind)
+SimInfo[5,] <- c("TotNIndWSR", NA, ntelemind)
 
 #Number of BR Sites per Region
 BR.sites.region <- data.frame(Name = "NSites BR",

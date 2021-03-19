@@ -11,7 +11,7 @@ nb <- 5000 #burn in period
 nc <- 8 #number of cores
 
 #How Many Simulations would you like to run?
-looprun1 <- 10
+looprun1 <- 100
 
 #Simplified loop, broken into multiple scripts
 #Saves individual loop outputs to their own files
