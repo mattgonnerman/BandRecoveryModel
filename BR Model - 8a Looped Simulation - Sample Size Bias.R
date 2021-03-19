@@ -5,10 +5,10 @@ require(miscTools)
 require(ggplot2)
 
 # #MCMC settings
-ni <- 100 #number of iterations
+ni <- 10000 #number of iterations
 nt <- 8 #thinning
-nb <- 5 #burn in period
-nc <- 5 #number of cores
+nb <- 5000 #burn in period
+nc <- 8 #number of cores
 
 #How Many Simulations would you like to run?
 looprun1 <- 10
@@ -44,10 +44,6 @@ for(looprun in 1:looprun1){
   print(paste("Run", looprun, "End Time:", Sys.time(), sep = " "))
 }
 
-write.csv(master.bias.hr, "Model Bias Comparison/SampleSize/Master HR Bias.csv")
-write.csv(master.bias.wsr, "Model Bias Comparison/SampleSize/Master WSR Bias.csv")
-write.csv(master.bias.N, "Model Bias Comparison/SampleSize/Master N Bias.csv")
-write.csv(master.bias.R, "Model Bias Comparison/SampleSize/Master R Bias.csv")
 
 #Analyze Results
 source(file = "BR Model - 8f Looped Simulation - Analyze Results.R")
