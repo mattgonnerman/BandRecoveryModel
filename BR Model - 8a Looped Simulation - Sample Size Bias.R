@@ -8,14 +8,14 @@ require(ggplot2)
 ni <- 10000 #number of iterations
 nt <- 8 #thinning
 nb <- 5000 #burn in period
-nc <- 8 #number of cores
+nc <- 6 #number of cores
 
 #How Many Simulations would you like to run?
 looprun1 <- 150
 
 #Simplified loop, broken into multiple scripts
 #Saves individual loop outputs to their own files
-for(looprun in 18:looprun1){
+for(looprun in 1:looprun1){
   
   print(paste("Run", looprun, "Start Time:", Sys.time(), sep = " "))
   
