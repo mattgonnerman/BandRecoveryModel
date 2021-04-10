@@ -123,7 +123,7 @@ real.R <- data.frame(Year = 1:(ncol(N.A)-6),
 
 
 ### Save Real Values
-sink(paste("Model Bias Comparison/SampleSize/Trial ",looprun," - RealParameterValues.csv", sep = ""))
+sink(paste("E:/Maine Drive/Analysis/Band Recovery/Github Trials/Trial ",looprun," - RealParameterValues.csv", sep = ""))
 cat("Average Real HR")
 cat('\n')
 write.csv(true.hr, row.names = F)

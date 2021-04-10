@@ -63,7 +63,7 @@ SimInfo <- rbind(SimInfo, WSR.ind.region)
 SimInfo <- SimInfo %>%
   mutate(Trial = looprun)
 #Save Information
-write.csv(SimInfo, file = paste("Model Bias Comparison/SampleSize/Trial ",looprun," - Data Details.csv", sep = ""), row.names = F)
+write.csv(SimInfo, file = paste("E:/Maine Drive/Analysis/Band Recovery/Github Trials/Trial ",looprun," - Data Details.csv", sep = ""), row.names = F)
 
 
 #Master SiteInfo File

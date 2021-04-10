@@ -15,11 +15,7 @@ looprun1 <- 50
 
 #Simplified loop, broken into multiple scripts
 #Saves individual loop outputs to their own files
-<<<<<<< HEAD
 for(looprun in 1:looprun1){
-=======
-for(looprun in 30:looprun1){
->>>>>>> 684e6d2227aa8d812d3e69a0e54094cdf8919658
   
   print(paste("Run", looprun, "Start Time:", Sys.time(), sep = " "))
   
@@ -34,7 +30,7 @@ for(looprun in 30:looprun1){
   
   #Save raw model outputs individually
   write.csv(BR_w_SPP_output$BUGSoutput$summary,
-            file = paste("Model Bias Comparison/SampleSize/Trial ",looprun," - 3M Raw Output.csv", sep = ""))
+            file = paste("E:/Maine Drive/Analysis/Band Recovery/Github Trials/Trial ",looprun," - 3M Raw Output.csv", sep = ""))
   
   #Summarize Model Results
   source(file = "BR Model - 8c Looped Simulation - Summarize Model Results.R")
