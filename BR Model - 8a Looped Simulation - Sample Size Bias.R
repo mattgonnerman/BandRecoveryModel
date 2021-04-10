@@ -11,11 +11,11 @@ nb <- 5000 #burn in period
 nc <- 8 #number of cores
 
 #How Many Simulations would you like to run?
-looprun1 <- 50
+looprun1 <- 150
 
 #Simplified loop, broken into multiple scripts
 #Saves individual loop outputs to their own files
-for(looprun in 30:looprun1){
+for(looprun in 72:looprun1){
   
   print(paste("Run", looprun, "Start Time:", Sys.time(), sep = " "))
   
@@ -50,6 +50,7 @@ master.bias.wsr <- read.csv("Model Bias Comparison/SampleSize/Master WSR Bias.cs
 master.bias.N <- read.csv("Model Bias Comparison/SampleSize/Master N Bias.csv", check.names=FALSE)
 master.bias.R <- read.csv("Model Bias Comparison/SampleSize/Master R Bias.csv", check.names=FALSE)
 mastersiteinfo <- read.csv("Model Bias Comparison/SampleSize/MasterSimInfo.csv")
+max(mastersiteinfo$Trial)
 
 #Analyze Results
 source(file = "BR Model - 8f Looped Simulation - Analyze Results.R")
