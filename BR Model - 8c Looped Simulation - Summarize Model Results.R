@@ -76,7 +76,7 @@ R.est <- R.long %>%
 
 
 ###Save Model Estimates
-sink(paste("Model Bias Comparison/SampleSize/Trial ",looprun," - EstParameterValues.csv", sep = ""))
+sink(paste("E:/Maine Drive/Analysis/Band Recovery/Github Trials/Trial ",looprun," - EstParameterValues.csv", sep = ""))
 cat("Average Estimated HR")
 cat('\n')
 write.csv(mean.est.HR, row.names = F)

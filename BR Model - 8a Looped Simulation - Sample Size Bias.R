@@ -8,14 +8,18 @@ require(ggplot2)
 ni <- 10000 #number of iterations
 nt <- 8 #thinning
 nb <- 5000 #burn in period
-nc <- 8 #number of cores
+nc <- 6 #number of cores
 
 #How Many Simulations would you like to run?
 looprun1 <- 150
 
 #Simplified loop, broken into multiple scripts
 #Saves individual loop outputs to their own files
+<<<<<<< HEAD
 for(looprun in 72:looprun1){
+=======
+for(looprun in 1:looprun1){
+>>>>>>> d719bbf961a8c32914d45834d81848feb69743b1
   
   print(paste("Run", looprun, "Start Time:", Sys.time(), sep = " "))
   
@@ -30,7 +34,7 @@ for(looprun in 72:looprun1){
   
   #Save raw model outputs individually
   write.csv(BR_w_SPP_output$BUGSoutput$summary,
-            file = paste("Model Bias Comparison/SampleSize/Trial ",looprun," - 3M Raw Output.csv", sep = ""))
+            file = paste("E:/Maine Drive/Analysis/Band Recovery/Github Trials/Trial ",looprun," - 3M Raw Output.csv", sep = ""))
   
   #Summarize Model Results
   source(file = "BR Model - 8c Looped Simulation - Summarize Model Results.R")

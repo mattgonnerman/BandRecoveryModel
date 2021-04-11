@@ -49,6 +49,17 @@ N.bias <- merge(N.bias, SimInfo.totaldata, by = c("Trial")) %>%
   mutate(NInd_BR_bin = ifelse(is.na(NInd_BR_bin), 0, 10*NInd_BR_bin)) %>%
   mutate(NInd_WSR_bin = ifelse(is.na(NInd_WSR_bin), 0, 10*NInd_WSR_bin))
 
+hist(N.bias$value, xlim = c(0,500), breaks = 5000)
+
+ggplot(N.bias, aes(x = NSites_BR, y = value)) +
+  geom_point(aes(color = Age))
+ggplot(N.bias, aes(x = NSites_WSR, y = value)) +
+  geom_point(aes(color = Age))
+ggplot(N.bias, aes(x = NInd_BR, y = value)) +
+  geom_point(aes(color = Age))
+ggplot(N.bias, aes(x = NInd_WSR, y = value)) +
+  geom_point(aes(color = Age))
+
 #Density Plots
 ggplot(N.bias, aes(x = value, group = Age)) +
   geom_density(aes(fill = Age), alpha = .7) +
