@@ -15,11 +15,8 @@ looprun1 <- 150
 
 #Simplified loop, broken into multiple scripts
 #Saves individual loop outputs to their own files
-<<<<<<< HEAD
-for(looprun in 72:looprun1){
-=======
+
 for(looprun in 1:looprun1){
->>>>>>> d719bbf961a8c32914d45834d81848feb69743b1
   
   print(paste("Run", looprun, "Start Time:", Sys.time(), sep = " "))
   

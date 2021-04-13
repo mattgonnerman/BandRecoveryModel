@@ -51,8 +51,8 @@ N.bias <- merge(N.bias, SimInfo.totaldata, by = c("Trial")) %>%
 
 hist(N.bias$value, xlim = c(0,500), breaks = 5000)
 
-ggplot(N.bias, aes(x = NSites_BR, y = value)) +
-  geom_point(aes(color = Age))
+ggplot(N.bias, aes(x = NSites_BR, y = value, color = factor(NSites_BR))) +
+  geom_boxplot(outlier.shape = NA) + ylim(-100,100)
 ggplot(N.bias, aes(x = NSites_WSR, y = value)) +
   geom_point(aes(color = Age))
 ggplot(N.bias, aes(x = NInd_BR, y = value)) +
