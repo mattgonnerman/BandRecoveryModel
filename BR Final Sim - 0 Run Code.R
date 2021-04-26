@@ -6,24 +6,24 @@ require(miscTools)
 require(ggplot2)
 
 ### MCMC settings
-ni <- 100 #number of iterations
+ni <- 10000 #number of iterations
 nt <- 8 #thinning
-nb <- 5 #burn in period
+nb <- 5000 #burn in period
 nc <- detectCores()/2 #number of cores
 
 ### Set Variable Parameters 
 ## HR Gaussian Process
 # Magnitude of variation, value that variogram levels out at 
-psill.hr <- 0.1 #c(0.001, 0.01, 0.1)
+psill.hr <- 0.01 #c(0.001, 0.01, 0.1)
 # Maximal distance of autocorrelation, where variogram levels out
 hr.sc <- 0.005 #c(0.001, 0.005, 0.01)
 # Small-scale variations
 nugget.hr <- 7 #c(2, 7, 15)
 
 #Which Trial area you running (e.g. "LowNugget", "MedPSill", "HighRange")
-trialname <- "HighPSill"
+trialname <- "MedAll"
 
-for(looprun in 1:100){
+for(looprun in 11:100){
   print(paste("Run", looprun, "Start Time:", Sys.time(), sep = " "))
   
   #Generate Simulated Dataset
@@ -63,4 +63,7 @@ max(mastersiteinfo$Trial)
 
 
 
-#Create Graphs
+#Create Graphs to Visualize Results
+source(file = "BR Final Sim - 8 Preliminary Graphs.R")
+
+#Summarize Results
