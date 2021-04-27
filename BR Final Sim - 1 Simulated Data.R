@@ -710,8 +710,8 @@ for(i in 1:(C*D)){
   for(j in 2:n.years.TH){
     N.A[i,j] <- rbinom(1, (N.A[i,j-1] - totharv.A[i,j-1]), Region_Mean_WSR$NonHarv.S.A[i]) + 
       rbinom(1, (N.J[i,j-1] - totharv.J[i,j-1]), Region_Mean_WSR$NonHarv.S.J[i])
-    K <- ifelse((1-(N.A[i,j-1]/5000)) < 0, .01, (1-(N.A[i,j-1]/5000)))
-    N.J[i,j] <- rpois(1,r.vector[j-1]*K*N.A[i,j-1])
+    K <- (1-(N.A[i,j-1]/5000))
+    N.J[i,j] <- rpois(1,r.vector[j-1]*exp(K)*N.A[i,j-1])
     
     totharv.A[i,j] <- rbinom(1, N.A[i,j], SS.HR.A[i,j])
     totharv.J[i,j] <- rbinom(1, N.J[i,j], SS.HR.J[i,j])
