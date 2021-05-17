@@ -90,7 +90,7 @@ N.bias <- rbind(N.abs.bias.A.diff, N.rel.bias.A.diff, N.abs.bias.A.diff.Total, N
 
 #Estimate Bias between realized and estimated R
 # R.bias <- colMeans(r.vector - R.est[,-1])
-R.bias <- as.data.frame(matrix(r.vector[6:length(r.vector)], ncol = length(r.vector)-5, nrow = C*D, byrow = T) - as.matrix(R.est[,-1]))
+R.bias <- as.matrix(real.R) - as.matrix(R.est[,-1])
 R.bias.df <- data.frame(Parameter = trialname,
                         Trial = looprun,
                         WMD = 1:(C*D))

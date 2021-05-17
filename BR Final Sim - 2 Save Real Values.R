@@ -118,8 +118,14 @@ real.N.J <- N.J[,6:ncol(N.A)]
 
 
 ### R Values
-real.R <- data.frame(Year = 1:(ncol(N.A)-6),
-                     Mean = r.vector[6:(ncol(N.A)-1)])
+K.real <- K[,6:(ncol(N.A)-1)]
+r.real <- r.vector[6:(ncol(N.A)-1)]
+real.R <- as.data.frame(matrix(NA, ncol = ncol(K.real), nrow = nrow(K.real)))
+for(i in 1:nrow(K.real)){
+  for(j in 1:length(r.real)){
+    real.R[i,j] <- r.real[j]*K.real[i,j]
+  }
+}
 
 
 ### Save Real Values

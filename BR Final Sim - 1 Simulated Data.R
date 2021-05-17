@@ -63,7 +63,7 @@ max.N.J.1 <- 1000
 max.N.A.1 <- 1000
 min.N.J.1 <- 25
 min.N.A.1 <- 25
-mean.R <- 2.5 #average R around which WMD specific will be sampled
+mean.R <- 1.5 #average R around which WMD specific will be sampled
 sd.R <- .1
 
 #Used for to specify how to determine starting values
@@ -703,6 +703,7 @@ N.J[,1] <- sample(min.N.J.1:max.N.J.1, C*D, replace = T)
 
 
 r.vector <- rnorm(n.years.TH-1, mean.R, sd.R)
+K <- as.data.frame(matrix(NA, nrow = C*D, ncol = n.years.TH-1))
 for(i in 1:(C*D)){
   totharv.A[i,1] <- rbinom(1, N.A[i,1], SS.HR.A[i,1])
   totharv.J[i,1] <- rbinom(1, N.J[i,1], SS.HR.J[i,1])
@@ -710,8 +711,8 @@ for(i in 1:(C*D)){
   for(j in 2:n.years.TH){
     N.A[i,j] <- rbinom(1, (N.A[i,j-1] - totharv.A[i,j-1]), Region_Mean_WSR$NonHarv.S.A[i]) + 
       rbinom(1, (N.J[i,j-1] - totharv.J[i,j-1]), Region_Mean_WSR$NonHarv.S.J[i])
-    K <- (1-(N.A[i,j-1]/5000))
-    N.J[i,j] <- rpois(1,r.vector[j-1]*exp(K)*N.A[i,j-1])
+    K[i,j-1] <- exp((1-(N.A[i,j-1]/5000)))
+    N.J[i,j] <- rpois(1,r.vector[j-1]*K[i, j-1]*N.A[i,j-1])
     
     totharv.A[i,j] <- rbinom(1, N.A[i,j], SS.HR.A[i,j])
     totharv.J[i,j] <- rbinom(1, N.J[i,j], SS.HR.J[i,j])
