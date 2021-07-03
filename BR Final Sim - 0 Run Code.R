@@ -1,3 +1,6 @@
+##########################
+### SIMULATED DATA SET ###
+##########################
 require(parallel)
 require(dplyr)
 require(stringr)
@@ -16,14 +19,14 @@ nc <- detectCores()/2 #number of cores
 # Magnitude of variation, value that variogram levels out at 
 psill.hr <- 0.01 #c(0.001, 0.01, 0.1)
 # Maximal distance of autocorrelation, where variogram levels out
-hr.sc <- 2 #c(2, 7, 15)
+hr.sc <- 7 #c(2, 7, 15)
 # Small-scale variations
-nugget.hr <- 0.005 #c(0.001, 0.005, 0.01)
+nugget.hr <- 0.01 #c(0.001, 0.005, 0.01)
 
 #Which Trial area you running (e.g. "LowNugget", "MedPSill", "HighRange")
-trialname <- "LowRange"
+trialname <- "HighNugget"
 
-for(looprun in 1:100){
+for(looprun in 1:40){
   print(paste("Run", looprun, "Start Time:", Sys.time(), sep = " "))
   
   #Generate Simulated Dataset
@@ -66,4 +69,31 @@ max(mastersiteinfo$Trial)
 #Create Graphs to Visualize Results
 source(file = "BR Final Sim - 8 Preliminary Graphs.R")
 
-#Summarize Results
+
+########################
+### REAL TURKEY DATA ###
+########################
+require(parallel)
+require(dplyr)
+require(stringr)
+require(tidyr)
+require(miscTools)
+require(ggplot2)
+
+### MCMC settings
+ni <- 50000 #number of iterations
+nt <- 8 #thinning
+nb <- 20000 #burn in period
+nc <- detectCores()/2 #number of cores
+
+#Prep Turkey Data
+source(file = "BR Final Sim - 9 Prep Real Turkey Data.R")
+
+#Run Model
+source(file = "BR Final Sim - 3a Execute JAGS - Real Data.R")
+
+write.csv(BR_w_SPP_output$BUGSoutput$summary,
+          file = "realdataOutput2021.csv")
+
+#Summarize Model Results
+source(file = "BR Final Sim - 5a Summarize Model Results - Real Data.R")

@@ -4,7 +4,7 @@ require(tidyr)
 require(wesanderson)
 require(stringr)
 
-trialname <- "MedAll"
+trialname <- "LowRange"
 
 # Load Files
 N.bias.raw <- read.csv(paste("E:/Maine Drive/Analysis/Band Recovery/FinalSim/", trialname, " - Master N Bias.csv", sep = ""), check.names=FALSE)
@@ -83,49 +83,49 @@ N.A.est.bias.rhat <- merge(abs.rel.N.bias.A, Nest.A.rhat.values, by = c("Trial",
 N.J.est.bias.rhat <- merge(abs.rel.N.bias.J, Nest.J.rhat.values, by = c("Trial", "WMD", "Year"))
 
 ### Relative Bias X Absolute Bias HexBin Plot
-ggplot(N.A.est.bias.rhat, aes(x = Raw.Est, y = Rel.Bias)) +
+ggplot(N.A.est.bias.rhat, aes(x = log(Raw.Est), y = Rel.Bias)) +
   geom_hex(bins = 50) +
   scale_fill_gradientn(colours = wes_palette(n=5, name="Zissou1"),
                       values = c(0, .001, .05, .2, 1)) +
-  labs(title = "Real Estimates X Relative Bias (WMD Specific)", subtitle = "Adult Males | Medium Paramater Values") +
-  ylab("Relative Bias") + xlab("Real Value") +
+  labs(title = paste("Adult Males | ", trialname, sep = "")) +
+  ylab("Relative Bias") + xlab("log(Real Value)") +
   theme_classic(base_size = 25)
 ggsave(device = "jpeg", width = 14, height = 10,
        paste("E:/Maine Drive/Analysis/Band Recovery/FinalSim/Graphs/", trialname, " - RelBiasXReal_A_WMD.jpeg", sep = ""))
 
-ggplot(N.A.est.bias.rhat, aes(x = Raw.Est, y = Rel.Bias)) +
-  geom_hex(bins = 50) +
-  scale_fill_gradientn(colours = wes_palette(n=5, name="Zissou1"),
-                       values = c(0, .001, .05, .2, 1)) +
-  labs(title = "Real Estimates X Relative Bias (WMD Specific)", subtitle = "Adult Males | Medium Paramater Values") +
-  ylab("Relative Bias") + xlab("Real Value") +
-  theme_classic(base_size = 25) +
-  ylim(-1,1) +
-  xlim(0,10000)
-ggsave(device = "jpeg", width = 14, height = 10,
-       paste("E:/Maine Drive/Analysis/Band Recovery/FinalSim/Graphs/", trialname, " - RelBiasXReal_A_WMD_ZOOM.jpeg", sep = ""))
+# ggplot(N.A.est.bias.rhat, aes(x = Raw.Est, y = Rel.Bias)) +
+#   geom_hex(bins = 50) +
+#   scale_fill_gradientn(colours = wes_palette(n=5, name="Zissou1"),
+#                        values = c(0, .001, .05, .2, 1)) +
+#   labs(title = "Real Estimates X Relative Bias (WMD Specific)", subtitle = "Adult Males") +
+#   ylab("Relative Bias") + xlab("Real Value") +
+#   theme_classic(base_size = 25) +
+#   ylim(-1,1) +
+#   xlim(0,10000)
+# ggsave(device = "jpeg", width = 14, height = 10,
+#        paste("E:/Maine Drive/Analysis/Band Recovery/FinalSim/Graphs/", trialname, " - RelBiasXReal_A_WMD_ZOOM.jpeg", sep = ""))
 
-ggplot(N.J.est.bias.rhat, aes(x = Raw.Est, y = Rel.Bias)) +
+ggplot(N.J.est.bias.rhat, aes(x = log(Raw.Est), y = Rel.Bias)) +
   geom_hex(bins = 50) +
   scale_fill_gradientn(colours = wes_palette(n=5, name="Zissou1"),
                        values = c(0, .001, .05, .2, 1)) +
-  labs(title = "Real Estimates X Relative Bias (WMD Specific)", subtitle = "Juvenile Males | Medium Paramater Values") +
-  ylab("Relative Bias") + xlab("Real Value") +
+  labs(title = paste("Juvenile Males | ", trialname, sep = "")) +
+  ylab("Relative Bias") + xlab("log(Real Value)") +
   theme_classic(base_size = 25)
 ggsave(device = "jpeg", width = 14, height = 10,
        paste("E:/Maine Drive/Analysis/Band Recovery/FinalSim/Graphs/", trialname, " - RelBiasXReal_J_WMD.jpeg", sep = ""))
 
-ggplot(N.J.est.bias.rhat, aes(x = Raw.Est, y = Rel.Bias)) +
-  geom_hex(bins = 50) +
-  scale_fill_gradientn(colours = wes_palette(n=5, name="Zissou1"),
-                       values = c(0, .001, .05, .2, 1)) +
-  labs(title = "Real Estimates X Relative Bias (WMD Specific)", subtitle = "Juvenile Males | Medium Paramater Values") +
-  ylab("Relative Bias") + xlab("Real Value") +
-  theme_classic(base_size = 25) +
-  ylim(-1,1) +
-  xlim(0,10000)
-ggsave(device = "jpeg", width = 14, height = 10,
-       paste("E:/Maine Drive/Analysis/Band Recovery/FinalSim/Graphs/", trialname, " - RelBiasXReal_J_WMD_ZOOM.jpeg", sep = ""))
+# ggplot(N.J.est.bias.rhat, aes(x = Raw.Est, y = Rel.Bias)) +
+#   geom_hex(bins = 50) +
+#   scale_fill_gradientn(colours = wes_palette(n=5, name="Zissou1"),
+#                        values = c(0, .001, .05, .2, 1)) +
+#   labs(title = "Real Estimates X Relative Bias (WMD Specific)", subtitle = "Juvenile Males | Medium Paramater Values") +
+#   ylab("Relative Bias") + xlab("Real Value") +
+#   theme_classic(base_size = 25) +
+#   ylim(-1,1) +
+#   xlim(0,10000)
+# ggsave(device = "jpeg", width = 14, height = 10,
+#        paste("E:/Maine Drive/Analysis/Band Recovery/FinalSim/Graphs/", trialname, " - RelBiasXReal_J_WMD_ZOOM.jpeg", sep = ""))
 
 ### Absolute Bias X Absolute Bias HexBin Plot
 ggplot(N.A.est.bias.rhat, aes(x = Raw.Est, y = Abs.Bias)) +
