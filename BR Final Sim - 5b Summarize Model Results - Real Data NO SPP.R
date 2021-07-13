@@ -16,18 +16,9 @@ require(ggplot2)
 ### Harvest Rate Estimates
 estvalues.HR.br <- outputs %>%
   rename(ID = X) %>%
-  filter(grepl("WMD.HR.", ID)) %>%
-  mutate(WMD = str_extract(ID, "(?<=\\[).*?(?=\\,)")) %>%
-  mutate(Year = as.numeric(str_extract(ID, "(?<=\\,).*?(?=\\])"))) %>%
-  filter(!is.na(Year)) %>%
-  mutate(Age = substr(ID,8,8)) %>%
-  filter(!grepl("SS", ID)) %>%
-  dplyr::select(mean, Year, WMD, Age) %>%
-  pivot_wider(names_from = c(Age, Year), values_from = c(mean), names_sort = T)
-mean.est.values.HR <- colMeans(estvalues.HR.br[,2:((n.band.years*2)+1)])
-mean.est.HR <- data.frame(Age = c(rep("A", n.band.years), rep("J", n.band.years)),
-                          Year = rep(1:n.band.years, 2),
-                          Mean = mean.est.values.HR)
+  filter(grepl("mean.WMD.HR", ID)) %>%
+  mutate(Age = substr(ID,13,13)) %>%
+  dplyr::select(mean, Age) 
 
 ### Non Harvest Survival Estimates
 est.WSR <- outputs %>%
@@ -62,6 +53,7 @@ N.J.long <- outputs %>%
 N.J.est <- N.J.long %>%
   pivot_wider(names_from = c(Year), values_from = mean)
 
+
 ### Recruitment
 #Individual R for WMD and Year
 R.long <- outputs %>%
@@ -75,10 +67,10 @@ R.est <- R.long %>%
 
 
 ###Save Model Estimates
-sink("Real Data 2021 - Summarize Model Estimates.csv")
+sink("Real Data 2021 NO SPP - Summarize Model Estimates.csv")
 cat("Average Estimated HR")
 cat('\n')
-write.csv(mean.est.HR, row.names = F)
+write.csv(estvalues.HR.br, row.names = F)
 cat('\n')
 cat('\n')
 cat("Average Estimated WSR")

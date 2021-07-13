@@ -183,6 +183,11 @@ require(tidyr)
 require(miscTools)
 require(ggplot2)
 
+A = 100
+B = 100
+Field = expand.grid(1:A, 1:B)
+names(Field) = c('x','y')
+
 
 ### Set Variable Parameters 
 ## HR Gaussian Process

@@ -514,10 +514,11 @@ allyearharv.J <- as.matrix(allyearsharvest[,((ncol(allyearsharvest)+1)/2):(ncol(
 #Change years for SSPop here
 #-11 for 2010 to present as of 2021 data
 #-7 for 2014 to present as of 2021 data 
-totharv.A <- allyearharv.A[,(ncol(allyearharv.A)-7):ncol(allyearharv.A)] 
-totharv.J <- allyearharv.J[,(ncol(allyearharv.J)-7):ncol(allyearharv.J)]
+totharv.A <- allyearharv.A[,(ncol(allyearharv.A)-10):ncol(allyearharv.A)] 
+totharv.J <- allyearharv.J[,(ncol(allyearharv.J)-10):ncol(allyearharv.J)]
 
-
+#Which years have missing data? (Provide COlumn index, not year itself)
+missing.2020 <- 10
 
 
 
@@ -596,5 +597,3 @@ CountWMD.df <- as.data.frame(spatialknots) %>%
 WMD.vec <- CountWMD.df$Total
 WMD.id <- sapply(CountWMD.df$WMD_IN, function(x) which(x == totalharvest.df$WMD))
 
-#Which years have missing data? (Provide COlumn index, not year itself)
-missing.2020 <- 7
