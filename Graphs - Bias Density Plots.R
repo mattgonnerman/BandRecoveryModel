@@ -78,10 +78,10 @@ N.A.dens.plot <- ggplot(N.est.bias.rhat.A, aes(x = Raw.Est, y = value)) +
   labs(title = "Adult",
        y = "Relative Bias",
        x = element_blank()) +
-  theme_classic(base_size = 80) +
+  theme_classic(base_size = 20) +
   theme(legend.position = c(.85,.4),
-        legend.key.width = unit(3, "cm"), 
-        legend.key.height = unit(4, "cm"),
+        legend.key.width = unit(.75, "cm"), 
+        legend.key.height = unit(1, "cm"),
         legend.title = element_blank())
 N.J.dens.plot <- ggplot(N.est.bias.rhat.J, aes(x = Raw.Est, y = value)) +
   geom_hex(bins = 50) +
@@ -91,10 +91,10 @@ N.J.dens.plot <- ggplot(N.est.bias.rhat.J, aes(x = Raw.Est, y = value)) +
   labs(title = "Juvenile",
        y = "Relative Bias",
        x = "Real Abundance") +
-  theme_classic(base_size = 80) +
+  theme_classic(base_size = 20) +
   theme(legend.position = c(.85,.4),
-        legend.key.width = unit(3, "cm"), #change legend key size
-        legend.key.height = unit(4, "cm"),
+        legend.key.width = unit(.75, "cm"), #change legend key size
+        legend.key.height = unit(1, "cm"),
         legend.title = element_blank()) #change legend key height
 
 densplots <- list(N.A.dens.plot, N.J.dens.plot)
@@ -102,41 +102,51 @@ require(cowplot)
 rel_bias_grid <- plot_grid(plotlist = densplots,
                            nrow = 2,
                            align = "hv",
+                           axis = "lb",
+                           labels = "AUTO", label_size = 20)
+
+jpeg("Graphs/Grouped Density Plots.jpg", width = 4000, height = 4000, res = 300)
+rel_bias_grid
+dev.off()
+
+
+
+### Supplemental Figure Showing Differences across Simulation Types
+Nest.rhat.values <- rbind(Nest.A.rhat.values, Nest.J.rhat.values)
+
+N.est.bias.rhat <- merge(N.bias.long, Nest.rhat.values, by = c("Parameter", "Trial", "WMD", "Year", "Age"))
+
+abun.dens.plot.func <- function(x){
+  parametervalue <- trialnames[x]
+  PlotData <- N.est.bias.rhat %>% filter(Parameter == parametervalue)
+  ggplot(PlotData, aes(x = Raw.Est, y = value)) +
+    geom_hex(bins = 50) +
+    scale_fill_gradientn(name = "Count",
+                         colours = wes_palette(n=5, name="Zissou1"),
+                         values = c(0, .01, .05, .2, 1)) +
+    labs(y = "Relative Bias",
+         x = "Real Abundance") +
+    theme_classic(base_size = 20) +
+    theme(legend.position = c(.85,.4),
+          legend.key.width = unit(.75, "cm"), 
+          legend.key.height = unit(1, "cm"),
+          legend.title = element_blank())
+}
+
+abun.dens.plot <- lapply(c(1,7,2,3,7,4,5,7,6), abun.dens.plot.func)
+
+require(cowplot)
+rel_bias_grid <- plot_grid(plotlist = abun.dens.plot,
+                           nrow = 3,
+                           labels = "AUTO",
+                           label_size = 20,
+                           align = "hv",
                            axis = "lb")
 
-jpeg("Graphs/Grouped Density Plots.jpg", width = 3000, height = 4000)
+jpeg("Graphs/Supplemental Density Plots Grid.jpg", width = 5000, height = 5000, res = 300)
 rel_bias_grid
 dev.off()
 
 
 
 
-
-
-
-
-# Nest.rhat.values <- rbind(Nest.A.rhat.values, Nest.J.rhat.values)
-# 
-# N.est.bias.rhat <- merge(N.bias.long, Nest.rhat.values, by = c("Parameter", "Trial", "WMD", "Year", "Age"))
-# 
-# abun.dens.plot.func <- function(x){
-#   parametervalue <- trialnames[x]
-#   PlotData <- N.est.bias.rhat %>% filter(Parameter == parametervalue)
-#   ggplot(PlotData, aes(x = Raw.Est, y = value)) +
-#     geom_hex(bins = 50) +
-#     scale_fill_gradientn(name = "Count",
-#                          colours = wes_palette(n=5, name="Zissou1"),
-#                          values = c(0, .001, .05, .2, 1)) +
-#     labs(subtitle = parametervalue) +
-#     ylab("Relative Bias") + xlab("Real Abundance") +
-#     theme_classic(base_size = 90) +
-#     # ylim(-1,1) +
-#     # xlim(0,10000) +
-#     theme(legend.position = "none",
-#           legend.key.width = unit(2, "cm"), #change legend key size
-#           legend.key.height = unit(4, "cm")) #change legend key height
-# }
-# 
-# abun.dens.plot <- lapply(c(1,7,2,3,7,4,5,7,6), abun.dens.plot.func)
-# 
-# 

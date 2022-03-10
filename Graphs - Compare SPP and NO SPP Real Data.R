@@ -41,6 +41,12 @@ N.merged <- merge(N.spp, N.nospp, by = c("WMD", "Year", "Age"))
 N.merged.A <- N.merged %>% filter(Age == "A")
 N.merged.J <- N.merged %>% filter(Age == "J")
 
+N.merged.summary <- N.merged %>%
+  mutate(Diff = Mean.NoSPP - Mean.SPP) %>%
+  group_by(Age) %>%
+  summarize(MeanDiff = mean(Diff),
+            SD = sd(Diff))
+
 ### Harvest Rate Data
 HR.est.spp <- realspp.raw %>%
   mutate(X = rownames(.)) %>%
@@ -78,78 +84,83 @@ HR.est.merge.J <- HR.est.merge %>% filter(Age == "J")
 
 ### Abundance Plots
 N.A.plot <- ggplot(data = N.merged.A, aes(x = Mean.NoSPP, y = Mean.SPP, 10)) +
-  geom_point(size = 2) +
-  geom_errorbar(aes(xmin = Mean.NoSPP - Sd.NoSPP, 
-                xmax = Mean.NoSPP + Sd.NoSPP)) +
-  geom_errorbar(aes(ymin = Mean.SPP - Sd.SPP, 
-                    ymax = Mean.SPP + Sd.SPP)) +
+  geom_point(size = .8) +
+  geom_errorbar(aes(xmin = ifelse(Mean.NoSPP - Sd.NoSPP <= 0, 1, Mean.NoSPP - Sd.NoSPP), 
+                xmax = Mean.NoSPP + Sd.NoSPP), lwd = .3) +
+  geom_errorbar(aes(ymin = ifelse(Mean.SPP - Sd.SPP <= 0, 1, Mean.SPP - Sd.SPP), 
+                    ymax = Mean.SPP + Sd.SPP), lwd = .3) +
   geom_abline(intercept = 0) +
-  theme_classic(base_size = 33) + 
-  scale_y_continuous(breaks=c(0, 10, 100, 1000, 4000)) +
-  scale_x_continuous(breaks=c(0, 10, 100, 1000, 4000)) +
+  theme_classic(base_size = 10) + 
+  scale_y_continuous(limits = c(1, 7100), breaks=c(0, 10, 100, 1000, 4000)) +
+  scale_x_continuous(limits = c(1, 7100), breaks=c(0, 10, 100, 1000, 4000)) +
   coord_trans(x = "log10", y = "log10") +
   labs(title = "Adult Abundance", x = "No SPP", y = "SPP")
+
 N.J.plot <- ggplot(data = N.merged.J, aes(x = Mean.NoSPP, y = Mean.SPP, 10)) +
-  geom_point(size = 2) +
+  geom_point(size = .8) +
   geom_errorbar(aes(xmin = ifelse(Mean.NoSPP - Sd.NoSPP <= 0, 1, Mean.NoSPP - Sd.NoSPP), 
-                    xmax = Mean.NoSPP + Sd.NoSPP)) +
+                    xmax = Mean.NoSPP + Sd.NoSPP), lwd = .3) +
   geom_errorbar(aes(ymin = ifelse(Mean.SPP - Sd.SPP <= 0, 1, Mean.SPP - Sd.SPP), 
-                    ymax = Mean.SPP + Sd.SPP)) +
+                    ymax = Mean.SPP + Sd.SPP), lwd = .3) +
   geom_abline(intercept = 0) +
-  theme_classic(base_size = 33) + 
-  scale_y_continuous(breaks=c(0, 10, 100, 1000, 4000)) +
-  scale_x_continuous(breaks=c(0, 10, 100, 1000, 4000)) +
+  theme_classic(base_size = 10) + 
+  scale_y_continuous(limits = c(1, 7100), breaks=c(0, 10, 100, 1000, 4000)) +
+  scale_x_continuous(limits = c(1, 7100), breaks=c(0, 10, 100, 1000, 4000)) +
   coord_trans(x = "log10", y = "log10") +
   labs(title = "Juvenile Abundance", x = "No SPP", y = "SPP")
 
 
 ### Harvest Rate Plots
 HR.A.plot <- ggplot(data = HR.A.est.spp, aes(x = as.factor(Year), y = HRSPP)) +
-  geom_boxplot(aes(fill = as.factor(Year)), outlier.shape = NA) +
+  # geom_boxplot(aes(fill = as.factor(Year)), outlier.shape = NA) +
   geom_pointrange(aes(ymin = Lower, ymax = Upper), 
                   position=position_jitter(width=0.2), 
                   linetype='dashed',
                   shape = 20,
-                  size = .85,
-                  fatten = 8, 
+                  size = .65,
+                  fatten = 2, 
                   alpha = .6) +
-  geom_point(data = HR.A.est.nospp,
-             aes(y = HRNOSPP, x = as.factor(Year)),
-             size = 8, shape = 17,
-             position = position_nudge(x = .25)) +
   geom_errorbar(data = HR.A.est.nospp,
                 aes(x = as.factor(Year), 
                     y = HRNOSPP, 
                     ymin = Lower, ymax = Upper),
                 width = NA,
-                position = position_nudge(x = .25), 
-                size = 2) +
-  theme_classic(base_size = 33) +
+                position = position_nudge(x = .0), 
+                size = .5, color = "red") +
+  geom_point(data = HR.A.est.nospp,
+             aes(y = HRNOSPP, 
+                 x = as.factor(Year)),
+             fill = "red",
+             size = 2, shape = 24, color = "black", stroke = .25,
+             position = position_nudge(x = .0)) +
+  theme_classic(base_size = 12) +
   labs(title = "Adult Harvest Rate", x = "Year", y = "Harvest Rate") +
   theme(legend.position = "none") +
   scale_x_discrete(labels = 2018:2021)
 
 HR.J.plot <- ggplot(data = HR.J.est.spp, aes(x = as.factor(Year), y = HRSPP)) +
-  geom_boxplot(aes(fill = as.factor(Year)), outlier.shape = NA) +
+  # geom_boxplot(aes(fill = as.factor(Year)), outlier.shape = NA) +
   geom_pointrange(aes(ymin = Lower, ymax = Upper), 
                   position=position_jitter(width=0.2), 
                   linetype='dashed',
                   shape = 20,
-                  size = .85,
-                  fatten = 8, 
+                  size = .65,
+                  fatten = 2, 
                   alpha = .6) +
-  geom_point(data = HR.J.est.nospp,
-             aes(y = HRNOSPP, x = as.factor(Year)),
-             size = 8, shape = 17,
-             position = position_nudge(x = .25)) +
   geom_errorbar(data = HR.J.est.nospp,
                 aes(x = as.factor(Year), 
                     y = HRNOSPP, 
                     ymin = Lower, ymax = Upper),
                 width = NA,
-                position = position_nudge(x = .25), 
-                size = 2) +
-  theme_classic(base_size = 33) +
+                position = position_nudge(x = .0), 
+                size = .5, color = "red") +
+  geom_point(data = HR.J.est.nospp,
+             aes(y = HRNOSPP, 
+                 x = as.factor(Year)),
+                 fill = "red",
+             size = 2, shape = 24, color = "black", stroke = .25,
+             position = position_nudge(x = .0)) +
+  theme_classic(base_size = 12) +
   labs(title = "Juvenile Harvest Rate", x = "Year", y = "Harvest Rate") +
   theme(legend.position = "none") +
   scale_x_discrete(labels = 2018:2021)
@@ -160,9 +171,11 @@ compareSPPplots <- list(N.A.plot, N.J.plot, HR.A.plot, HR.J.plot)
 require(cowplot)
 compareSPP_grid <- plot_grid(plotlist = compareSPPplots,
                            nrow = 2,
+                           labels = "AUTO",
+                           label_size = 14,
                            align = "hv",
                            axis = "lb")
 
-jpeg("Graphs/Compare With and Without SPP.jpg", width = 2000, height = 2000)
+jpeg("Graphs/Compare With and Without SPP.jpg", width = 2000, height = 2000, res = 300)
 compareSPP_grid
 dev.off()

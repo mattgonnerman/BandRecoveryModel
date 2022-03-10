@@ -54,7 +54,7 @@ low_psill <- ggplot()+  ## Initialize the ggplot layer
   scale_fill_gradient(low="red",high="green") +
   # geom_sf(data = bandsiteselect) +
   geom_sf(data = st_cast(SA.grid,"LINESTRING")) +
-  theme_void(base_size = 38) +
+  theme_void(base_size = 14) +
   labs(title = "Low Partial Sill") +
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 low_psill
@@ -90,7 +90,7 @@ med_psill <- ggplot()+  ## Initialize the ggplot layer
   scale_fill_gradient(low="red",high="green") +
   # geom_sf(data = bandsiteselect) +
   geom_sf(data = st_cast(SA.grid,"LINESTRING")) +
-  theme_void(base_size = 38) +
+  theme_void(base_size = 14) +
   labs(title = "Medium Partial Sill")+
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 
@@ -125,12 +125,14 @@ high_psill <- ggplot()+  ## Initialize the ggplot layer
   scale_fill_gradient(low="red",high="green") +
   # geom_sf(data = bandsiteselect) +
   geom_sf(data = st_cast(SA.grid,"LINESTRING")) +
-  theme_void(base_size = 38) +
+  theme_void(base_size = 14) +
   labs(title = "High Partial Sill")+
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 
 require(patchwork)
-psillgraphs <- low_psill + med_psill + high_psill
+psillgraphs <- low_psill + med_psill + high_psill + 
+  plot_annotation(tag_levels = 'A') & 
+  theme(plot.tag = element_text(size = 14))
 
 
 
@@ -168,7 +170,7 @@ low_nugget <- ggplot()+  ## Initialize the ggplot layer
   scale_fill_gradient(low="red",high="green") +
   # geom_sf(data = bandsiteselect) +
   geom_sf(data = st_cast(SA.grid,"LINESTRING")) +
-  theme_void(base_size = 38) +
+  theme_void(base_size = 14) +
   labs(title = "Low Nugget")+
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 
@@ -204,7 +206,7 @@ med_nugget <- ggplot()+  ## Initialize the ggplot layer
   scale_fill_gradient(low="red",high="green") +
   # geom_sf(data = bandsiteselect) +
   geom_sf(data = st_cast(SA.grid,"LINESTRING")) +
-  theme_void(base_size = 38) +
+  theme_void(base_size = 14) +
   labs(title = "Medium Nugget")+
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 
@@ -239,12 +241,14 @@ high_nugget <- ggplot()+  ## Initialize the ggplot layer
   scale_fill_gradient(low="red",high="green") +
   # geom_sf(data = bandsiteselect) +
   geom_sf(data = st_cast(SA.grid,"LINESTRING")) +
-  theme_void(base_size = 38) +
+  theme_void(base_size = 14) +
   labs(title = "High Nugget")+
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 
 require(patchwork)
-nuggetgraphs <- low_nugget + med_nugget + high_nugget
+nuggetgraphs <- low_nugget + med_nugget + high_nugget + 
+  plot_annotation(tag_levels =  list(c("D", "E", "F"))) & 
+  theme(plot.tag = element_text(size = 14))
 
 
 
@@ -283,7 +287,7 @@ low_range <- ggplot()+  ## Initialize the ggplot layer
   scale_fill_gradient(low="red",high="green") +
   # geom_sf(data = bandsiteselect) +
   geom_sf(data = st_cast(SA.grid,"LINESTRING")) +
-  theme_void(base_size = 38) +
+  theme_void(base_size = 14) +
   labs(title = "Low Range")+
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 
@@ -320,7 +324,7 @@ med_range <- ggplot()+  ## Initialize the ggplot layer
   scale_fill_gradient(low="red",high="green") +
   # geom_sf(data = bandsiteselect) +
   geom_sf(data = st_cast(SA.grid,"LINESTRING")) +
-  theme_void(base_size = 38) +
+  theme_void(base_size = 14) +
   labs(title = "Medium Range")+
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 
@@ -354,15 +358,17 @@ high_range <- ggplot()+  ## Initialize the ggplot layer
   scale_colour_gradient(low="red",high="green") +   ## Set the colors of the gradient
   scale_fill_gradient(low="red",high="green") +
   geom_sf(data = st_cast(SA.grid,"LINESTRING")) +
-  theme_void(base_size = 38) +
+  theme_void(base_size = 14) +
   labs(title = "High Range")+
   theme(legend.position = "none", plot.title = element_text(hjust = 0.5))
 
 require(patchwork)
-rangegraphs <- low_range + med_range + high_range
+rangegraphs <- low_range + med_range + high_range + 
+  plot_annotation(tag_levels = list(c("G", "H", "I"))) & 
+  theme(plot.tag = element_text(size = 14))
 
 require(cowplot)
-jpeg('/Graphs/Example Spatial Variation.png', width = 3000, height = 3000)
+jpeg('./Graphs/Example Spatial Variation.jpeg', res = 300, width = 3000, height = 3000)
 plot_grid(plotlist = list(psillgraphs,nuggetgraphs, rangegraphs),
           nrow = 3
 )

@@ -1,6 +1,7 @@
 require(dplyr)
 require(sf)
 require(ggplot2)
+require(stringr)
 
 #Run real data prep so you have access to that info when needed
 source(file = "BR Final Sim - 9 Prep Real Turkey Data.R")
@@ -37,29 +38,29 @@ WMD_Estimates.sf <- merge(wmd_boundaries1, N.J.2021, by = "WMD", all.x = T)
 
 #Adult Abundance Map
 PopA_Graph_heat <- ggplot() +
-  geom_sf(data = WMD_Estimates.sf, aes(fill = N.A), color = "black", size = 2) +
+  geom_sf(data = WMD_Estimates.sf, aes(fill = N.A), color = "black", size = 1) +
   scale_fill_gradientn(colors = c("#c33764", "white", "#1d2671"),
                        na.value = "grey",
                        breaks = c(100, 1000, 2000, 3000),
                        labels=c("<100", 1000, 2000, 3000)) +
-  theme_void(base_size = 68) +
+  theme_void(base_size = 16) +
   labs(title = "Adult Abundance - 2021", fill = element_blank()) +
-  theme(legend.key.height = unit(1.2, "inches"),
-        legend.key.width = unit(1, "inches"),
-        legend.position = c(.1, .8))
+  theme(legend.key.height = unit(.3, "inches"),
+        legend.key.width = unit(.25, "inches"),
+        legend.position = c(.12, .8))
 
 #Juvenile Abundance Map
 PopJ_Graph_heat <- ggplot() +
-  geom_sf(data = WMD_Estimates.sf, aes(fill = N.J), color = "black", size = 2) +
+  geom_sf(data = WMD_Estimates.sf, aes(fill = N.J), color = "black", size = 1) +
   scale_fill_gradientn(colors = c("#c33764", "white", "#1d2671"),
                        na.value = "grey",
                        breaks = c(100, 2000, 4000, 5500),
                        labels=c("<100", 2000, 4000, 5500)) +
-  theme_void(base_size = 68) +
+  theme_void(base_size = 16) +
   labs(title = "Juvenile Abundance - 2021", fill = element_blank()) +
-  theme(legend.key.height = unit(1.2, "inches"),
-        legend.key.width = unit(1, "inches"),
-        legend.position = c(.1, .8))
+  theme(legend.key.height = unit(.3, "inches"),
+        legend.key.width = unit(.25, "inches"),
+        legend.position = c(.12, .8))
 
 ### Total Abundance Over Time
 years <- 2011:2021
@@ -87,13 +88,18 @@ N.J.total <- N.J %>%
   dplyr::select(-WMD) %>%
   colSums(.)
 
+mean(N.A.total + N.J.total)
+min(N.A.total + N.J.total)
+max(N.A.total + N.J.total)
+N.A.total + N.J.total
+
 N.total <- data.frame(Abundance = c(N.J.total,N.A.total),
                       Age = c(rep("Juvenile", length(N.J.total)),rep("Adult", length(N.J.total))),
                       Year = rep(names(N.J.total),2))
 
 N.time <- ggplot(data = N.total, aes(x = as.factor(Year), y = Abundance, group = as.factor(Age))) +
-  geom_line(aes(linetype = as.factor(Age)), size = 5) +
-  theme_classic(base_size = 78) +
+  geom_line(aes(linetype = as.factor(Age)), size = 2) +
+  theme_classic(base_size = 20) +
   theme(legend.position = "none", 
         axis.title.x=element_blank()) +
   labs(x = "Year", y = "Abundance") +
@@ -101,15 +107,18 @@ N.time <- ggplot(data = N.total, aes(x = as.factor(Year), y = Abundance, group =
 
 ### Final Figure
 require(patchwork)
-maps <- PopA_Graph_heat + PopJ_Graph_heat
-require(cowplot)
+maps <- (PopA_Graph_heat + PopJ_Graph_heat)/N.time
+maps <- maps + 
+  plot_annotation(tag_levels = 'A') + 
+  plot_layout(heights = c(3, 1))
 
-jpeg('Graphs/RealDataResults - Abundance Maps and Line Plots.png', width = 4000, height = 4000)
-plot_grid(plotlist = list(maps,N.time),
-          nrow = 2,
-          rel_heights = c(1, .4)
-)
+jpeg('Graphs/RealDataResults - Abundance Maps and Line Plots.png', width = 4000, height = 4000, res = 300)
+maps
 dev.off()
+
+
+
+
 
 ### Adult Harvest Rate Map
 #Load Model outputs
@@ -131,7 +140,6 @@ HR_A_Graph_heat <- ggplot() +
   labs(fill = "Harvest\nRate") +
   theme(legend.key.height = unit(.3, "inches"),
         legend.key.width = unit(.2, "inches"),
-        # legend.title.align = .5,
-        legend.position = c(.15, .8))
-ggsave(plot = HR_A_Graph_heat, "Graphs/Adult Harvest Rate Stand Alone Map.jpeg", width = 6.5, height = 8, units = "in")
+        legend.position = c(.12, .8))
+ggsave(plot = HR_A_Graph_heat, "Graphs/Adult Harvest Rate Stand Alone Map.jpeg", width = 6.5, height = 8, units = "in", dpi = 300)
 

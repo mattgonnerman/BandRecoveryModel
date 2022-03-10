@@ -597,3 +597,7 @@ CountWMD.df <- as.data.frame(spatialknots) %>%
 WMD.vec <- CountWMD.df$Total
 WMD.id <- sapply(CountWMD.df$WMD_IN, function(x) which(x == totalharvest.df$WMD))
 
+### WMD Identifier Reference
+data.frame(WMD = CountWMD.df$WMD_IN,
+           ID = WMD.id) %>%
+  arrange(ID)
