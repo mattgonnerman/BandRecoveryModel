@@ -1,3 +1,6 @@
+##########################
+### SIMULATED DATA SET ###
+##########################
 require(parallel)
 require(dplyr)
 require(stringr)
@@ -23,7 +26,7 @@ nugget.hr <- 0.01 #c(0.001, 0.005, 0.01)
 #Which Trial area you running (e.g. "LowNugget", "MedPSill", "HighRange")
 trialname <- "HighNugget"
 
-for(looprun in 13:100){
+for(looprun in 1:100){
   print(paste("Run", looprun, "Start Time:", Sys.time(), sep = " "))
   
   #Generate Simulated Dataset
@@ -66,4 +69,48 @@ max(mastersiteinfo$Trial)
 #Create Graphs to Visualize Results
 source(file = "BR Final Sim - 8 Preliminary Graphs.R")
 
-#Summarize Results
+
+########################
+### REAL TURKEY DATA ###
+########################
+require(parallel)
+require(dplyr)
+require(stringr)
+require(tidyr)
+require(miscTools)
+require(ggplot2)
+
+### MCMC settings
+ni <- 50000 #number of iterations
+nt <- 8 #thinning
+nb <- 20000 #burn in period
+nc <- detectCores()/2 #number of cores
+
+#Prep Turkey Data
+source(file = "BR Final Sim - 9 Prep Real Turkey Data.R")
+
+source(file = "BR Final Sim - 3a Execute JAGS - Real Data.R")
+
+#Save model
+save(BR_w_SPP_output, file ="RealDataModelOutput.RData")
+# load( file ="RealDataModelOutput.RData") #BR_w_SPP_output
+
+#Summarize Model Results
+source(file = "BR Final Sim - 5a Summarize Model Results - Real Data.R")
+
+### Run a model without the SPP, assume constant harvest rate across the state
+### MCMC settings
+ni <- 50000 #number of iterations
+nt <- 8 #thinning
+nb <- 20000 #burn in period
+nc <- detectCores()/2 #number of cores
+
+#Prep Turkey Data
+source(file = "BR Final Sim - 9 Prep Real Turkey Data.R")
+
+#Run Model
+source(file = "BR Final Sim - 3b Execute JAGS - Real Data NO SPP.R")
+
+write.csv(BR_w_SPP_output$BUGSoutput$summary,
+          file = "realdataNOSPPOutput2021.csv")
+source(file = "BR Final Sim - 5b Summarize Model Results - Real Data NO SPP.R")
