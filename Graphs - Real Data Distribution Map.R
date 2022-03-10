@@ -9,21 +9,8 @@ wmdids <- sort(CountWMD.df$WMD_IN)
 ###Load Model outputs
 load( file ="RealDataModelOutput.RData") #BR_w_SPP_output
 
-### Calculate a coefficient of variation (sd/mean) 
-cv.N.A <- as.data.frame(BR_w_SPP_output$BUGSoutput$mean$N.A/BR_w_SPP_output$BUGSoutput$sd$N.A) %>%
-  'colnames<-'(paste("Y",2011:2021,sep = "_")) %>%
-  mutate(MeanCV = rowMeans(.)) %>%
-  mutate(IDENTIFIER = wmdids)
-cv.N.J <- as.data.frame(BR_w_SPP_output$BUGSoutput$mean$N.J/BR_w_SPP_output$BUGSoutput$sd$N.J) %>%
-  'colnames<-'(paste("Y",2011:2021,sep = "_")) %>%
-  mutate(MeanCV = rowMeans(.)) %>%
-  mutate(IDENTIFIER = wmdids)
-
-cv.map <- cv.N.A %>% dplyr::select(IDENTIFIER, MeanCV)
-
 #Load WMD Boundaried and Capture locations as sf objects
 wmd_boundaries <- st_read(".", "Maine_Wildlife_Management_Districts")
-wmd_boundaries <- merge(wmd_boundaries, cv.map, by = "IDENTIFIER", all.x = T)
 
 cap_locations <- st_read(".", "cap_locations")
 
@@ -62,8 +49,8 @@ spatialknots$Knot_ID <- 1:length(spatialknots$X) #Add a reference ID
 #Spatial knots as triangles
 
 samplemap <- ggplot(wmd_boundaries) +
-  geom_sf(aes(fill = MeanCV), size = 1, color = "black") +
-  # geom_sf(data = spatialknots, shape = 17, size = 10, color = 'green3') +
+  geom_sf(aes(), fill = NA, size = 1, color = "black") +
+  geom_sf(data = spatialknots, shape = 17, size = 2, color = 'red') +
   geom_sf(data = cap_numind, aes(size = NumInd, color = TransDepl), alpha = .7) +
   scale_fill_gradientn(colors = c("#ffeda0", "#feb24c", "#f03b20"),
                        na.value = "grey",
@@ -76,7 +63,7 @@ samplemap <- ggplot(wmd_boundaries) +
   theme(legend.key.height = unit(.3, "inches"), 
         legend.key.width = unit(.2, "inches"),
         legend.title = element_blank(),
-        legend.position = c(.12, .8))
+        legend.position = "none")
 
 #Save plot
-ggsave(plot = samplemap, "Graphs/Coefficient of Variation Map.jpeg", width = 6.5, height = 8, units = "in", dpi = 300)
+ggsave(plot = samplemap, "Graphs/Real Data Distribution Map.jpeg", width = 6.5, height = 8, units = "in", dpi = 300)
