@@ -12,7 +12,7 @@ require(ggplot2)
 ni <- 10000 #number of iterations
 nt <- 8 #thinning
 nb <- 5000 #burn in period
-nc <- detectCores()/2 #number of cores
+nc <- detectCores() - 1 #number of cores
 
 ### Set Variable Parameters 
 ## HR Gaussian Process
@@ -24,6 +24,8 @@ hr.sc <- 7 #c(2, 7, 15)
 nugget.hr <- 0.01 #c(0.001, 0.005, 0.01)
 
 #Which Trial area you running (e.g. "LowNugget", "MedPSill", "HighRange")
+#Add "_noSPP" for secondary run without accounting for spatial variation
+
 trialname <- "HighNugget"
 
 for(looprun in 1:100){
@@ -36,7 +38,8 @@ for(looprun in 1:100){
   source(file = "BR Final Sim - 2 Save Real Values.R")
   
   #Run Model - SS with no year difference in HR - No R Pooling
-  source(file = "BR Final Sim - 3 Execute JAGS.R")
+  # source(file = "BR Final Sim - 3 Execute JAGS.R")
+  source(file = "BR Final Sim - 3 Execute JAGS - NO SPP.R")
   
   #Save raw model outputs individually
   write.csv(BR_w_SPP_output$BUGSoutput$summary,
