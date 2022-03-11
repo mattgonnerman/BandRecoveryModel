@@ -114,7 +114,7 @@ N.J.plot <- ggplot(data = N.merged.J, aes(x = Mean.NoSPP, y = Mean.SPP, 10)) +
 HR.A.plot <- ggplot(data = HR.A.est.spp, aes(x = as.factor(Year), y = HRSPP)) +
   # geom_boxplot(aes(fill = as.factor(Year)), outlier.shape = NA) +
   geom_pointrange(aes(ymin = Lower, ymax = Upper), 
-                  position=position_jitter(width=0.2), 
+                  position=position_jitter(width=0.3), 
                   linetype='dashed',
                   shape = 20,
                   size = .65,
@@ -126,12 +126,12 @@ HR.A.plot <- ggplot(data = HR.A.est.spp, aes(x = as.factor(Year), y = HRSPP)) +
                     ymin = Lower, ymax = Upper),
                 width = NA,
                 position = position_nudge(x = .0), 
-                size = .5, color = "red") +
+                size = 1, color = "red") +
   geom_point(data = HR.A.est.nospp,
              aes(y = HRNOSPP, 
                  x = as.factor(Year)),
              fill = "red",
-             size = 2, shape = 24, color = "black", stroke = .25,
+             size = 4, shape = 24, color = "black", stroke = .25,
              position = position_nudge(x = .0)) +
   theme_classic(base_size = 12) +
   labs(title = "Adult Harvest Rate", x = "Year", y = "Harvest Rate") +
@@ -141,7 +141,7 @@ HR.A.plot <- ggplot(data = HR.A.est.spp, aes(x = as.factor(Year), y = HRSPP)) +
 HR.J.plot <- ggplot(data = HR.J.est.spp, aes(x = as.factor(Year), y = HRSPP)) +
   # geom_boxplot(aes(fill = as.factor(Year)), outlier.shape = NA) +
   geom_pointrange(aes(ymin = Lower, ymax = Upper), 
-                  position=position_jitter(width=0.2), 
+                  position=position_jitter(width=0.3), 
                   linetype='dashed',
                   shape = 20,
                   size = .65,
@@ -153,12 +153,12 @@ HR.J.plot <- ggplot(data = HR.J.est.spp, aes(x = as.factor(Year), y = HRSPP)) +
                     ymin = Lower, ymax = Upper),
                 width = NA,
                 position = position_nudge(x = .0), 
-                size = .5, color = "red") +
+                size = 1, color = "red") +
   geom_point(data = HR.J.est.nospp,
              aes(y = HRNOSPP, 
                  x = as.factor(Year)),
                  fill = "red",
-             size = 2, shape = 24, color = "black", stroke = .25,
+             size = 4, shape = 24, color = "black", stroke = .25,
              position = position_nudge(x = .0)) +
   theme_classic(base_size = 12) +
   labs(title = "Juvenile Harvest Rate", x = "Year", y = "Harvest Rate") +
@@ -176,6 +176,6 @@ compareSPP_grid <- plot_grid(plotlist = compareSPPplots,
                            align = "hv",
                            axis = "lb")
 
-jpeg("Graphs/Compare With and Without SPP.jpg", width = 2000, height = 2000, res = 300)
+jpeg("Graphs/Compare With and Without SPP.jpg", width = 5000, height = 5000, res = 600)
 compareSPP_grid
 dev.off()
