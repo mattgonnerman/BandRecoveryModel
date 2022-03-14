@@ -43,11 +43,11 @@ PopA_Graph_heat <- ggplot() +
                        na.value = "grey",
                        breaks = c(100, 1000, 2000, 3000),
                        labels=c("<100", 1000, 2000, 3000)) +
-  theme_void(base_size = 16) +
-  labs(title = "Adult Abundance - 2021", fill = element_blank()) +
+  theme_void(base_size = 16) + 
+  guides(fill=guide_colorbar(title="Adult\nAbundance\n(2021)")) +
   theme(legend.key.height = unit(.3, "inches"),
         legend.key.width = unit(.25, "inches"),
-        legend.position = c(.12, .8))
+        legend.position = c(.12, .8)) 
 
 #Juvenile Abundance Map
 PopJ_Graph_heat <- ggplot() +
@@ -57,7 +57,7 @@ PopJ_Graph_heat <- ggplot() +
                        breaks = c(100, 2000, 4000, 5500),
                        labels=c("<100", 2000, 4000, 5500)) +
   theme_void(base_size = 16) +
-  labs(title = "Juvenile Abundance - 2021", fill = element_blank()) +
+  guides(fill=guide_colorbar(title="Juvenile\nAbundance\n(2021)")) +
   theme(legend.key.height = unit(.3, "inches"),
         legend.key.width = unit(.25, "inches"),
         legend.position = c(.12, .8))

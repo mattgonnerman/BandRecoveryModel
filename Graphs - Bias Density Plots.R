@@ -79,10 +79,12 @@ N.A.dens.plot <- ggplot(N.est.bias.rhat.A, aes(x = Raw.Est, y = value)) +
        y = "Relative Bias",
        x = element_blank()) +
   theme_classic(base_size = 20) +
-  theme(legend.position = c(.85,.4),
+  theme(legend.position = c(.85,.3),
         legend.key.width = unit(.75, "cm"), 
-        legend.key.height = unit(1, "cm"),
-        legend.title = element_blank())
+        legend.key.height = unit(1, "cm")) +
+  guides(fill=guide_colorbar(title="Total\nSimulations"))
+
+
 N.J.dens.plot <- ggplot(N.est.bias.rhat.J, aes(x = Raw.Est, y = value)) +
   geom_hex(bins = 50) +
   scale_fill_gradientn(name = "Count",
@@ -92,10 +94,10 @@ N.J.dens.plot <- ggplot(N.est.bias.rhat.J, aes(x = Raw.Est, y = value)) +
        y = "Relative Bias",
        x = "Real Abundance") +
   theme_classic(base_size = 20) +
-  theme(legend.position = c(.85,.4),
+  theme(legend.position = c(.85,.3),
         legend.key.width = unit(.75, "cm"), #change legend key size
-        legend.key.height = unit(1, "cm"),
-        legend.title = element_blank()) #change legend key height
+        legend.key.height = unit(1, "cm")) + #change legend key height 
+guides(fill=guide_colorbar(title="Total\nSimulations"))
 
 densplots <- list(N.A.dens.plot, N.J.dens.plot)
 require(cowplot)
