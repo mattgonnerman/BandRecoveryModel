@@ -33,14 +33,7 @@ dat <- list( succ = succ, #Adult Survival
              
              # sampledwmd = sort(unique(wsr_wmd)), #For when looking at just WSR
              sampledwmd = sampledwmd, #list of wmd's where we sampled
-             cap.site = ind.cap.site, #each individuals capture site as a numeric
-             d.s.star=KnotLocalDis.mat/1000, #distance between spatial knots and cap sites
-             d.s.star.star=KnotDis.mat/1000, #distance between spatial knots and other spatial knots
-             N.cap = ifelse(simrun != "Y",length(unique(ind.cap.site)), max(ind.cap.site)), #number of capture sites for SPP
-             N.knot = nrow(KnotDis.mat), #number of knots for SPP
              N.wmd = nrow(WMD.matrix), #number of WMDs we are using in SPP
-             WMD.matrix = WMD.matrix, #matrix showing which wmd a spatial knot is in
-             WMD.vec = WMD.vec, #vector for referencing WMD.matrix
              WMD.id = sort(WMD.id), #vector to ID WMDs in SPP
              
              th.A = totharv.A, #Total Adult Harvest by WMD '14-'19
@@ -64,10 +57,10 @@ parameters.null <- c('intercept_m', #Non-Harvest Survival Intercept
                      'beta_2019_hr',
                      'beta_2020_hr',
                      
-                     'mean.WMD.HR.A', #Mean WMD Harvest Rate
-                     'mean.WMD.HR.J',
-                     'WMD.HR.A', #WMD and Time Specific Harvest Rate
-                     'WMD.HR.J',
+                     'mean.HR.A', #Mean WMD Harvest Rate
+                     'mean.HR.J',
+                     'HR.A.year',
+                     'HR.J.year',
                      
                      'WSR_M_J_S2W',
                      'WSR_M_A_S2W',
@@ -159,7 +152,7 @@ names_for_parallel <- c("EH_raw",
                         "N.J.init")
 
 #Model for JAGS
-br_w_as_model <- source(file = "BR Final Sim - 4 JAGS Model.R")$value
+br_w_as_model <- source(file = "BR Final Sim - 4c JAGS Model NO SPP.R")$value
 
 
 ### Run Model ###
