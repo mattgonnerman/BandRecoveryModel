@@ -41,8 +41,8 @@ for(looprun in 1:100){
   source(file = "BR Final Sim - 2 Save Real Values.R")
   
   #Run Model - SS with no year difference in HR - No R Pooling
-  # source(file = "BR Final Sim - 3 Execute JAGS.R")
-  source(file = "BR Final Sim - 3 Execute JAGS - NO SPP.R")
+  source(file = "BR Final Sim - 3 Execute JAGS.R")
+  # source(file = "BR Final Sim - 3 Execute JAGS - NO SPP.R")
   
   #Save raw model outputs individually
   write.csv(BR_w_SPP_output$BUGSoutput$summary,
