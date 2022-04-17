@@ -21,15 +21,15 @@ psill.hr <- 0.01 #c(0.001, 0.01, 0.1)
 # Maximal distance of autocorrelation, where variogram levels out
 hr.sc <- 7 #c(2, 7, 15)
 # Small-scale variations
-nugget.hr <- 0.001 #c(0.001, 0.005, 0.01)
+nugget.hr <- 0.01 #c(0.001, 0.005, 0.01)
 
 #Which Trial area you running (e.g. "LowNugget", "MedPSill", "HighRange")
 #Add "_noSPP" for secondary run without accounting for spatial variation
 
-# Current: low 
-# Completed: 
+# Current: high 
+# Completed: LowNugget (Both), HighNugget (NoSPP)
 
-trialname <- "LowNugget"
+trialname <- "HighNugget"
 
 for(looprun in 1:100){
   print(paste("Run", looprun, "Start Time:", Sys.time(), sep = " "))

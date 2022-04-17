@@ -10,7 +10,7 @@ function(){#####################################################################
   #WSR
   for(i in 1:nvisit){
     eta[i] <- intercept_m + beta_A_m*wsr_age[i] + beta_S2W_m*wsr_S2W[i] + beta_W2S_m*wsr_W2S[i] + beta_wmd_m[wsr_wmd[i]]
-    cloglog(phi[i])<-eta[i] # anti-logit to determine the daily survival rate
+    log(phi[i])<-eta[i] # anti-logit to determine the daily survival rate
     mu[i]<- exp(-(interval[i]*phi[i])) # period survival is DSR raised to the interval
     succ[i]~dbern(mu[i])  # the data is distributed as bernoulli with period survival as the mean
   }
@@ -27,7 +27,7 @@ function(){#####################################################################
   for(j in 1:nind){
     for(t in f[j]:n.occasions){
       #Survival Model
-      cloglog(m.br[j,t]) <- intercept_m + beta_A_m*br_age_s[j,t] + beta_W2S_m*br_w2s[j,t] + beta_S2W_m*br_s2w[j,t] + beta_wmd_m[br_wmd[j]]
+      log(m.br[j,t]) <- intercept_m + beta_A_m*br_age_s[j,t] + beta_W2S_m*br_w2s[j,t] + beta_S2W_m*br_s2w[j,t] + beta_wmd_m[br_wmd[j]]
       
       #Band Recovery Model
       #Years Separate
